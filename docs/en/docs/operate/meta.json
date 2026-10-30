@@ -9,6 +9,7 @@
     "database-migrations",
     "artifact-processing-migration",
     "portable-archive",
+    "context-protection",
     "atomic-memory-migration",
     "observability",
     "trace-with-phoenix",
