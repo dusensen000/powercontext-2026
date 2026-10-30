@@ -18,6 +18,8 @@ The embedding application supplies a trusted target matching the Server's profil
 an authenticated PowerContextClient, and already-rendered JSON plus exact prepared
 block locations. Native cache settings must be rendered before this function.
 This is a single-request example, not a gateway implementation or compatibility claim.
+It does not mask or restore values. Returned bytes still need application-level
+validation before their contents become tool actions or persisted facts.
 
 ``await execute_checked_json(powercontext=client, target=target, scope_id=scope,
 payload=payload, prepared_contexts=locations)`` returns only approved response bytes.

@@ -56,7 +56,7 @@ def _response(text: str) -> bytes:
 
 
 def test_external_executor_preserves_approved_bytes_and_withholds_blocked_content(tmp_path):
-    safe_output = _response("继续使用端口 8123。")
+    safe_output = _response("继续使用端口 8123。保留字面模板 {{PROJECT_abcdefgh}}。不推测其真实值。")
 
     async def scenario(server):
         endpoint = f"http://127.0.0.1:{server.server_port}/v1/chat/completions"
@@ -105,7 +105,7 @@ def test_external_executor_preserves_approved_bytes_and_withholds_blocked_conten
                 json={
                     "scope_id": scope,
                     "kind": "fact",
-                    "text": "Alpha port stays at 8123.",
+                    "text": "Alpha port stays at 8123. The literal project template is {{PROJECT_abcdefgh}}.",
                 },
             )
             assert remembered.status_code == 200, remembered.text
@@ -119,6 +119,8 @@ def test_external_executor_preserves_approved_bytes_and_withholds_blocked_conten
                 })
             )
             assert isinstance(prepared, PreparedContextWithReuse)
+            assert prepared.context.content is not None
+            assert "{{PROJECT_abcdefgh}}" in prepared.context.content
             send = _send(scope, prepared)
             payload = ModelJsonPayload.model_validate(send["payload"])
             locations = tuple(PreparedContextLocation.model_validate(item) for item in send["prepared_contexts"])

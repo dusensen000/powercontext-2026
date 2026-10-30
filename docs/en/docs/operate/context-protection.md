@@ -33,7 +33,8 @@ The existing `explain` option still controls optional diagnostics. Add `include_
 }
 ```
 
-Placeholder content, byte count, time, and bindings are illustrative. Use the exact returned values. The Python
+The angle-bracket values, byte count, and time above are documentation examples, not a runtime masking format.
+Use the exact returned content and binding. The Python
 client returns either `PreparedContext` or `PreparedContextWithReuse`; narrow that union before reading its fields.
 In process, use `runtime.context.for_scope(scope_id).prepare(request)`. Its `validate_reuse` operation checks the
 retained proof without retrieval or embedding; embedded applications supply their own current authorization context.
@@ -81,6 +82,12 @@ block must remain in a supported user-message text position, preserving its hist
 System/developer promotion, changed text, overlapping/reordered locations, and unbound prepared markers are rejected.
 A target requiring prepared context cannot silently downgrade to a pure check.
 
+Admission does not redact text or restore placeholders. Replacing a name, path, address, or other value inside
+a prepared block changes its content and invalidates its exact reuse proof; even a reversible replacement is not
+the prepared value. A gateway must not mask an approved request or restore values into an approved response and
+reuse that approval for the changed bytes. A changed payload needs its own admission; this API supplies no
+placeholder mapping or authorization to reverse a privacy transformation.
+
 Only `allow` with `coverage.complete=true` permits the corresponding action. `block` and `withhold` return HTTP
 200 because a decision was made, but neither permits execution. Invalid carriers/locators return 422; authorization
 failure returns 401/403; an oversized payload returns 413. If the required check is unavailable, do not send or release.
@@ -109,3 +116,9 @@ retention, account/region isolation, or internal retries.
 ## Boundaries and cost
 
 The caller retains and refreshes reuse metadata. Reusing a prepared value can avoid repeated retrieval and assembly within its validity period; it does not create a server-side context cache or a provider KV cache. Compare repeated preparation and exact reuse against an existing once-prepared baseline before claiming task-level savings. The API verifies current authorization and exact payload identity, but cannot prove that an external executor actually sent or released the approved bytes.
+
+An allowed response is not a guarantee that the model understood its evidence or chose the correct action.
+Literal template markers remain ordinary content; the API neither invents missing values nor certifies that they
+are executable arguments. The application still validates the proposed action, target, and authorization before
+running a tool or persisting a generated fact. Restoring a real path after a model chose the wrong operation
+would not make that operation correct.
