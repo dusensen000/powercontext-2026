@@ -110,11 +110,15 @@ def protected_client(server: RecordingServer) -> httpx.AsyncClient:
     )
 
 
-@pytest.mark.parametrize("carrier", ("message", "tool_result", "duplicate_key", "unicode_escape"))
+@pytest.mark.parametrize(
+    "carrier", ("message", "tool_result", "duplicate_key", "unicode_escape", "literal_placeholder")
+)
 def test_forbidden_input_does_not_reach_a_real_http_listener(carrier: str) -> None:
     payload = request(_SECRET)
     if carrier == "tool_result":
         payload["messages"] = [{"role": "tool", "tool_call_id": "synthetic-tool", "content": _SECRET}]
+    elif carrier == "literal_placeholder":
+        payload = request("{{TOKEN_ABCDEFGH}} " + _SECRET)
     raw = json.dumps(payload).encode()
     if carrier == "duplicate_key":
         raw = raw.replace(json.dumps(_SECRET).encode(), f'"{_SECRET}", "content": "safe"'.encode())
@@ -134,17 +138,24 @@ def test_forbidden_input_does_not_reach_a_real_http_listener(carrier: str) -> No
         asyncio.run(scenario(server))
 
 
-def test_safe_request_and_exact_response_cross_the_real_http_boundary() -> None:
-    raw = completion()
+@pytest.mark.parametrize(
+    "content",
+    ("Return a safe answer.", "Keep {{USERNAME_AAAAAAAA}} and {{IP_BBBBBBBB}} unchanged; 路径 /home/example."),
+    ids=("plain_text", "literal_placeholders"),
+)
+def test_safe_request_and_exact_response_cross_the_real_http_boundary(content: str) -> None:
+    raw_request = json.dumps(request(content), ensure_ascii=False, indent=2).encode()
+    raw_response = completion(content)
 
     async def scenario(server: RecordingServer) -> None:
         async with protected_client(server) as client:
-            response = await client.post("/v1/chat/completions", json=request())
-        assert response.content == raw
-        assert len(server.received) == 1
-        assert json.loads(server.received[0]) == request()
+            response = await client.post(
+                "/v1/chat/completions", content=raw_request, headers={"Content-Type": "application/json"}
+            )
+        assert response.content == raw_response
+        assert server.received == [raw_request]
 
-    with upstream(raw) as server:
+    with upstream(raw_response) as server:
         asyncio.run(scenario(server))
 
 
