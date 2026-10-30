@@ -25,6 +25,7 @@ from .dataset import DEFAULT_DATASET, offline
 from .judging import judge
 from .report import build_report
 from .runner import run
+from .semantics import run as run_semantic_probe
 
 
 def main() -> None:
@@ -64,6 +65,18 @@ def main() -> None:
     grading.add_argument("--timeout", type=float, default=180)
     report = commands.add_parser("report")
     report.add_argument("--output", type=Path, required=True)
+    semantic = commands.add_parser(
+        "semantic-probe", help="fixed synthetic representation questions; no Runtime or tools"
+    )
+    semantic.add_argument("--output", type=Path, required=True)
+    semantic.add_argument("--schema", choices=("v1", "v2", "both"), default="both")
+    semantic.add_argument(
+        "--dry-run", action="store_true", help="validate fixtures and selected prompts; no model calls"
+    )
+    semantic.add_argument("--env-file", type=Path)
+    semantic.add_argument("--protection-config", type=Path)
+    semantic.add_argument("--max-output-tokens", type=int, default=2048)
+    semantic.add_argument("--timeout", type=float, default=90)
     args = parser.parse_args()
     for key in ("iterations", "repeats", "concurrency", "timeout", "max_output_tokens"):
         if getattr(args, key, None) is not None and getattr(args, key) <= 0:
@@ -77,6 +90,14 @@ def main() -> None:
         asyncio.run(judge(args))
         if not args.validate_only:
             build_report(args.output)
+    elif args.command == "semantic-probe":
+        if not args.dry_run and args.env_file is None:
+            parser.error("semantic-probe requires --env-file unless --dry-run is selected")
+        result = asyncio.run(run_semantic_probe(args))
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        complete = result["required_rendering_coverage_complete"] if args.dry_run else result["all_probe_cases_passed"]
+        if not complete:
+            raise SystemExit(1)
     else:
         build_report(args.output)
         print(args.output / "report.md")

@@ -139,3 +139,48 @@ v4 每个成功产物最多一次回答与一次评分，单次模型调用最�
 离线算法的 `applied` 只是编码资格；最终是否选择编码输入以真实调用的 `encodings.reason` 为准：Prompt 不兼容、编码收益不足、还原失败或候选表示不满足隐私 profile 时，准备阶段保留原始输入。最终 wire 预算检查会拒绝超限请求，不会通过重排或再次压缩来放行。安全异常额外保存 `phase`、`decision` 和 `reason_codes`，不保存原始异常消息。
 
 安全拦截、跨 Scope 隔离、拒绝后的零转发、恶意证据及超大输入属于单独的受控回归，不混入公开数据集质量得分。公共数据集负载与合成重复日志压力也应分别标注。
+
+## 编码表示的固定语义探针
+
+`semantic-probe` 直接让模型阅读生产 codec 选出的表示，再回答固定问题。它有 7 组纯合成证据、29 个问题：
+主项目目录与临时目录的区别、字面占位标记与未知原值、Source 身份和 Scope 归属、重复次数与顺序、对象与 JSON
+字符串的类型，以及换行和空白。另有一个短输入对照，明确不能应用编码。`{{USERNAME_abcdefgh}}`、
+`{{TOKEN_abcdefgh}}` 和 `${API_KEY}` 都是输入中原本存在的合成字面标记，不是这套 codec 提供了脱敏或变量替换功能。
+
+预期答案是仓库内固定的字面量，不进入模型输入，也不从 decoder 的输出生成。模型通过正式生成适配器接收选中的原始
+或编码文本；评分器只比较模型答案与固定预期，区分 `true`、`1`、`1.0`、字符串和对象，并检查出现次序与精确字符。
+v2 还要求实际待答的 JSON 字符串使用 `j` 加共享引用、换行字段使用 `s` 加共享引用；只压缩无关填充不算覆盖。
+
+先检查题集、渲染与编码选择，不读取私密配置，也不调用模型：
+
+```bash
+.venv/bin/python -m evaluation.performance.input_encoding semantic-probe \
+  --dry-run --output /data/codex-tmp/input-encoding/semantic-plan
+```
+
+`plan.json` 可检查每次实际选择的 prompt、编码报告和待答字段的编码覆盖。dry-run 的 `semantic_evaluation` 始终是
+`not_run`，不产生语义通过结论。真实调用必须显式提供模型配置：
+
+```bash
+.venv/bin/python -m evaluation.performance.input_encoding semantic-probe \
+  --env-file /absolute/path/.env --schema both \
+  --output /data/codex-tmp/input-encoding/semantic-model-run
+```
+
+`--schema v1` 或 `v2` 可单独运行；默认 `both`。每种 schema 对每组题分别运行 `off`、`shadow`、`active`，默认共
+42 次尝试、174 次逐题评分。顺序按固定种子交错，每次最多 1 个模型请求，默认输出上限为 2,048 Token、超时 90 秒；
+可以用 `--max-output-tokens`、`--timeout` 调整，或用 `--protection-config` 配置现有传输保护。未提供工具，也不连接
+数据库。关于搜索原值或索取秘密的问题只测模型给出的选择，不证明真实工具执行的安全性。
+
+`report.json` 保留各 schema/mode 的固定题组和问题分母、未运行/错误状态、正确数、编码实际应用数与 active 回退数。
+缺少结果或实际编码覆盖不足时，`all_probe_cases_passed` 为 false；active 回退即使答对，也不能计为编码理解通过。
+短输入对照单独标为无需编码。该字段只表示这组固定题目通过，不表示模型在任意输入上都能可靠理解编码。
+用量缺失不会补零；失败或未完成尝试存在时总量保持未知，已知小计单列。Token 用量未知与答案正确性分别报告。
+
+manifest 固定题集与预期、codec、探针、Runtime/适配器源码、提示词、模型配置和预算身份。已有尝试不会自动重放；恢复
+时校验尝试 ID 与 prompt 摘要，并根据保存的实际输出重新评分。更改源码、题目或配置应使用新的输出目录。
+
+合成证据有意重复，以覆盖真正应用编码的情况，不代表自然输入分布或平均压缩收益。这个探针只检验所选 codec/model
+组合在固定问题上的表现，不能替代 `atomic_memory.extract`、`atomic_memory.reconcile`、`experience.generate`、
+`experience.incubate` 四个操作的真实 Runtime 质量验收。现有 Experience 的生成、持久化、盲评与成本评测仍分别执行。
+仓库中的受控模型测试只验证接线、评分与恢复逻辑，不是实际模型语义验收结果。
