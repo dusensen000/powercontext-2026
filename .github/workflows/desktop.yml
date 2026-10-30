@@ -182,17 +182,33 @@ jobs:
       - name: Verify native Keychain across processes
         run: cargo run --locked --manifest-path src-tauri/Cargo.toml --example credential_probe
       - name: Build unsigned macOS app and DMG
+        shell: bash
         run: |
           mkdir -p .artifacts
           set -o pipefail
-          pnpm tauri build --ci --verbose -- --locked 2>&1 | tee .artifacts/macos-build.log
+          for attempt in 1 2 3; do
+            log=".artifacts/macos-build-${attempt}.log"
+            if pnpm tauri build --ci --verbose -- --locked 2>&1 | tee "$log"; then
+              exit 0
+            else
+              status=$?
+            fi
+
+            # Retry only the observed transient DMG detach failure.
+            if [ "$attempt" -eq 3 ] ||
+               ! grep -Eq "hdiutil: couldn't eject .*Resource busy" "$log"; then
+              exit "$status"
+            fi
+            echo "DMG detach was busy; retrying build in 15 seconds (attempt $attempt/3)."
+            sleep 15
+          done
       - name: Upload failed macOS build diagnostics
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: desktop-macos-${{ matrix.runner }}-build-diagnostics
           path: |
-            desktop/.artifacts/macos-build.log
+            desktop/.artifacts/macos-build-*.log
             desktop/src-tauri/target/release/bundle/dmg/bundle_dmg.sh
           if-no-files-found: warn
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
