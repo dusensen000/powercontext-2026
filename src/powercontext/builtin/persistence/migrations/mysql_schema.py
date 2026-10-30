@@ -49,6 +49,7 @@ _PHYSICAL_VALUES = frozenset({
     "tablet_size",
     "pctfree",
     "auto_increment",
+    "fts_index_type",  # OceanBase 4.6 reflects its server-selected FULLTEXT storage type.
 })
 
 
@@ -308,7 +309,13 @@ class MySQLSchema:
         for revision in self.revisions:
             for state in [*self._prefixes[revision], self._schemas[revision]]:
                 if atomic_name in state["tables"]:
+                    columns = state["tables"][atomic_name]["columns"]
                     state["tables"][atomic_name] = copy.deepcopy(atomic)
+                    # Retain columns introduced after the frozen vector profile
+                    # while preserving its released vector and charset metadata.
+                    state["tables"][atomic_name]["columns"].update({
+                        name: copy.deepcopy(column) for name, column in columns.items() if name not in atomic["columns"]
+                    })
                 if revision != source:
                     state["tables"].update(copy.deepcopy(tables))
         self._statements[source] = tuple(
@@ -528,7 +535,13 @@ def _physical(tokens: list[str]) -> dict[str, str | None]:
 
 
 def _validate_physical_value(option: str, value: str) -> None:
-    supported = {"engine": {"innodb"}, "using": {"btree"}, "organization": {"index", "heap"}}
+    supported = {
+        "engine": {"innodb"},
+        "using": {"btree"},
+        "organization": {"index", "heap"},
+        # PHRASE_MATCH also supports the term matching used by the registered layouts.
+        "fts_index_type": {"match", "phrase_match"},
+    }
     if option in supported and value not in supported[option]:
         raise MigrationError("incompatible_schema", "An unsupported table engine or index organization was discovered.")
 
