@@ -22,6 +22,7 @@ from pydantic import JsonValue, TypeAdapter
 
 from powercontext.builtin.inference.input_encoding import (
     INPUT_ENCODING_SCHEMA,
+    INPUT_ENCODING_SCHEMA_V2,
     InputEncodingError,
     decode_input,
     encode_input,
@@ -126,6 +127,46 @@ def test_scalar_types_order_and_literal_reference_shaped_data_round_trip_exactly
     assert result.report.reason == "applied"
     assert decode_input(result.prompt) == original
     assert list(json.loads(decode_input(result.prompt))) == ["z", "a", "literal_nodes", "shared"]
+
+
+@pytest.mark.parametrize("schema", [INPUT_ENCODING_SCHEMA, INPUT_ENCODING_SCHEMA_V2])
+def test_literal_placeholders_keep_record_attribution_and_string_types(schema: str) -> None:
+    """Verify codec preservation only; this does not exercise a model's interpretation."""
+    payload = {
+        "owner": "<PERSON_1>",
+        "credential": "${API_KEY}",
+        "literal_reference": ["r", 0],
+        "note": _DETAIL,
+    }
+    serialized = _JSON.dump_json(payload).decode()
+    records = [
+        {
+            "source_id": f"source:{tenant}",
+            "entity_id": tenant,
+            "path": f"/workspace/{tenant}/config.json",
+            "ip": ip,
+            "intent": intent,
+            "object": payload,
+            "json_string": serialized,
+        }
+        for tenant, ip, intent in (
+            ("tenant-a", "192.0.2.10", "Read the configuration without modifying it."),
+            ("tenant-b", "192.0.2.20", "Explain deletion risks without executing a command."),
+        )
+    ]
+    original = _JSON.dump_json({"records": records}).decode()
+    encoded = encode_input(original, stage="experience.generate", schema=schema, mode="active")
+
+    assert encoded.report.reason == "applied"
+    restored = decode_input(encoded.prompt, schema=schema, stage="experience.generate")
+    assert restored == original
+    for actual, expected in zip(json.loads(restored)["records"], records, strict=True):
+        assert {key: actual[key] for key in ("source_id", "entity_id", "path", "ip", "intent")} == {
+            key: expected[key] for key in ("source_id", "entity_id", "path", "ip", "intent")
+        }
+        assert actual["object"] == payload
+        assert isinstance(actual["json_string"], str)
+        assert actual["json_string"] == serialized
 
 
 def test_repeated_array_root_does_not_require_an_artifact_dto_shape() -> None:
