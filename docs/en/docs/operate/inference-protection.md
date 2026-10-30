@@ -7,6 +7,19 @@ description: Check final model requests and complete raw responses at owned prov
 
 PowerContext checks model requests before transmission and complete raw responses before delivery at its owned inference transports. Protection is opt-in, requires a verified target profile, and introduces no database tables.
 
+## Inspection preserves content
+
+In `enforcing` mode, admitted request bodies and complete supported response bodies pass through unchanged,
+including literal text that looks like a placeholder. Forbidden values cause refusal; PowerContext does not
+replace them and send an altered request. This protection does not redact, pseudonymize, or automatically restore
+values in prompts or responses.
+
+Replacing a value and restoring it later does not guarantee equivalent task decisions. Carrying an opaque
+identifier between fields differs from reasoning about an actual IP range, path ownership, or token claims.
+A substitute can change the evidence used to choose an action; restoring a real path after the model selects
+the wrong operation does not correct that operation. This protection provides no reversible masking mechanism
+or guarantee that substituted content preserves task meaning.
+
 ## Configure a supported target
 
 Privacy configuration belongs to the trusted deployment, under `InferenceConfig.protection`.
@@ -42,6 +55,9 @@ inference = InferenceConfig(
     ),
 )
 ```
+
+`SecretStr` hides the configured value when it is displayed; rule matching still uses its actual value.
+It does not redact request or response content.
 
 The endpoint, model, and limits are illustrative. This example deliberately withholds until the deployment has
 verified that its model's tokenizer and protocol template fit the conservative UTF-8 bound and configured protocol
