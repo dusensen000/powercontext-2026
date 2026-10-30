@@ -64,14 +64,23 @@ class _Handler(BaseHTTPRequestHandler):
             output = {
                 "action": "create",
                 "compared_ids": [item["item_id"] for item in task["related"]],
-                "content": {"kind": task["proposal"]["kind"], "text": task["proposal"]["text"]},
+                "content": {
+                    "kind": task["proposal"]["kind"],
+                    "text": task["proposal"]["text"],
+                    "description": task["proposal"]["description"],
+                },
                 "evidence_ids": task["proposal"]["evidence_ids"],
                 "reason": "Retain the supported preference.",
             }
         else:
             output = {
                 "candidates": [
-                    {"kind": "preference", "text": _MEMORY, "evidence_ids": [task["evidence"][0]["evidence_id"]]}
+                    {
+                        "kind": "preference",
+                        "text": _MEMORY,
+                        "description": "Synthetic user preference.",
+                        "evidence_ids": [task["evidence"][0]["evidence_id"]],
+                    }
                 ]
             }
         encoded = json.dumps({
