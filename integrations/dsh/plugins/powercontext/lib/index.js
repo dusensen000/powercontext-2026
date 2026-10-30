@@ -161,6 +161,17 @@ function writeFailureConfirmation(error) {
 //#endregion
 //#region src/operations.generated.ts
 const OPERATIONS = {
+	get_recall_manifest: {
+		method: "POST",
+		path: "/v1/recall/manifest",
+		location: "body",
+		scopeMode: "current",
+		pathParameters: [],
+		queryParams: [],
+		headerParams: [],
+		successStatuses: [200],
+		emptyStatuses: []
+	},
 	list_atomic_memories: {
 		method: "POST",
 		path: "/v1/atomic-memory/list",
@@ -2208,6 +2219,25 @@ function validatePreparedContext(response, path = "/v1/context/prepare", maxByte
 		content_bytes: contentBytes
 	};
 }
+const MAX_QUERY_CHARACTERS = 8192;
+const MAX_QUERY_BYTES = 8192;
+/**
+* Reduce a prompt to the recall query. A prompt within both bounds is sent as submitted, trimmed.
+* A longer prompt keeps its most recent text, which holds the turn in hand, cut between characters
+* so that the query fits both bounds and splits no character.
+*/
+function boundedRecallQuery(prompt) {
+	const characters = Array.from(prompt.trim());
+	let start = characters.length;
+	let bytes = 0;
+	while (start > 0 && characters.length - start < MAX_QUERY_CHARACTERS) {
+		const size = Buffer.byteLength(characters[start - 1], "utf8");
+		if (bytes + size > MAX_QUERY_BYTES) break;
+		bytes += size;
+		start -= 1;
+	}
+	return characters.slice(start).join("").trim();
+}
 
 //#endregion
 //#region src/doctor.ts
@@ -3375,6 +3405,7 @@ const MCP_OPERATIONS = {
 	"get_experience": { "readOnly": true },
 	"get_handoff_report": { "readOnly": true },
 	"get_memory_entry": { "readOnly": true },
+	"get_recall_manifest": { "readOnly": true },
 	"get_scope": { "readOnly": true },
 	"get_skill": { "readOnly": true },
 	"get_topic_memory": { "readOnly": true },
@@ -3787,7 +3818,7 @@ async function recallContent(input, query, scopeId, observation) {
 		if (input.signal?.aborted) throw new TransportError("", input.signal.reason);
 		const result = await input.client.request("prepare_context", {
 			scope_id: scopeId,
-			query,
+			query: boundedRecallQuery(query),
 			max_bytes: input.config.maxBytes,
 			...input.config.contextAssembly === void 0 ? {} : { assembly: input.config.contextAssembly }
 		}, input.signal);
