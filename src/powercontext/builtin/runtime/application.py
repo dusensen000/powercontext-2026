@@ -166,6 +166,8 @@ from powercontext.builtin.runtime._scope_cache import (
     ScopeCacheObserver,
     ScopeEvictor,
 )
+from powercontext.builtin.runtime.context_pack import ContextPack, ContextPackDelta, ContextPackError
+from powercontext.builtin.runtime.source_lifecycle import LifecycleApplication
 from powercontext.builtin.runtime.decision_model import DecisionModel
 from powercontext.builtin.runtime.errors import InvalidRuntimeRequestError, TopicMemoryProcessingUnavailableError
 from powercontext.builtin.runtime.models import (
@@ -846,6 +848,24 @@ class ScopedContextApplication:
             if authorize_scopes is not None:
                 await authorize_scopes((self.scope_id, *scope.context_references))
             return await self._prepare(request, scope)
+
+    async def prepare_incremental(
+        self,
+        request: PrepareContextRequest,
+        /,
+        *,
+        base_pack: ContextPack | None = None,
+    ) -> ContextPack | ContextPackDelta:
+        """Prepare a full Context Pack, or a delta against a caller-held base pack."""
+
+        if base_pack is not None and not isinstance(base_pack, ContextPack):
+            raise ContextPackError("base_pack must be a ContextPack")  # noqa: TRY003
+        prepared = await self.prepare(request)
+        content = prepared.content or ""
+        target = ContextPack.from_content(content) if content else ContextPack.build(())
+        if base_pack is None:
+            return target
+        return ContextPackDelta.between(base_pack, target)
 
     async def _prepare(self, request: PrepareContextRequest, scope: ScopeDescriptor, /) -> PreparedContext:
         build, effort = await self._prepare_build(request, scope)
@@ -2668,6 +2688,15 @@ class ScopedTopicMemoryApplication:
                     embedding_timeout_seconds,
                 )
         observer = self._runtime._topic_memory_search_observer
+        inactive = await self._runtime.lifecycle.inactive_topics(self.scope_id)
+        if inactive:
+            kept = tuple(
+                hit
+                for hit in result.hits
+                if (hit.artifact_ref.family, hit.artifact_ref.artifact_id, hit.artifact_ref.revision) not in inactive
+            )
+            if len(kept) != len(result.hits):
+                result = result.model_copy(update={"hits": kept})
         if observer is not None:
             try:
                 observer(result.mode, used_fallback)
@@ -3110,6 +3139,7 @@ class BuiltinRuntime:
         self.work = WorkApplication(self)
         self.memory = MemoryApplication(self)
         self.topic_memory = TopicMemoryApplication(self)
+        self.lifecycle = LifecycleApplication(self)
         self.records = RecordApplication(self)
         self.prompts = PromptApplication(self)
         self.review = ReviewApplication(self)

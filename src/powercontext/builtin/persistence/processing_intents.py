@@ -254,6 +254,33 @@ class ArtifactProcessingIntentRepository:
         )
         return cast(StoredArtifactProcessingIntent, await self.load(connection, scope_id, binding_name))
 
+    async def admit_count(
+        self,
+        connection: AsyncConnection,
+        scope_id: str,
+        binding_name: str,
+        /,
+    ) -> bool:
+        """Accept one count-triggered invocation when no request is outstanding.
+
+        The caller has already compared journal positions against the Family's
+        successful Source cursor; this only advances the durable request counter
+        so the same window cannot be accepted twice.
+        """
+
+        current = await self.load(connection, scope_id, binding_name, for_update=True)
+        if current is None or current.dirty_generation <= current.clean_generation:
+            return False
+        if current.requested_generation > current.handled_generation:
+            return False
+        table = ARTIFACT_PROCESSING_INTENTS_TABLE
+        await connection.execute(
+            update(table)
+            .where(table.c.scope_id == scope_id, table.c.binding_name == binding_name)
+            .values(requested_generation=current.requested_generation + 1)
+        )
+        return True
+
 
 def _require_key(scope_id: str, binding_name: str) -> None:
     _require_identifier("scope_id", scope_id, MAX_SCOPE_ID_LENGTH)

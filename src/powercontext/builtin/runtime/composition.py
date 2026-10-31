@@ -97,6 +97,7 @@ from powercontext.builtin.persistence.processing_migration import (
     bootstrap_processing_schema,
 )
 from powercontext.builtin.persistence.scope_search_schema import ensure_scope_search_schema
+from powercontext.builtin.persistence.seekdb.memory_index import SeekDBMemoryIndex
 from powercontext.builtin.persistence.seekdb.profile import SeekDBConfig, SeekDBProfile
 from powercontext.builtin.persistence.skill_distribution_schema import ensure_skill_distribution_schema
 from powercontext.builtin.persistence.sqlite.experience_index import SQLiteExperienceFTSIndex
@@ -770,6 +771,10 @@ def _artifact_processing_bindings(  # noqa: C901 - validate and assemble one reg
         else:
             entrypoint = partial(run_family_worker, FamilyWorkerSpec(config=config, worker_security=worker_security))
         interval = None if family == "profile" else automatic[family]
+        count_threshold = {
+            "memory": config.runtime.memory_source_count_threshold,
+            "topic-memory": config.runtime.topic_memory_source_count_threshold,
+        }.get(family)
         binding = canonical[family]
         configured.append(
             ArtifactProcessingBinding(
@@ -779,6 +784,7 @@ def _artifact_processing_bindings(  # noqa: C901 - validate and assemble one reg
                 max_workers=getattr(config.runtime, f"{prefix}_max_workers"),
                 worker_timeout_seconds=getattr(config.runtime, f"{prefix}_worker_timeout_seconds"),
                 automatic_processing_interval=None if interval is None else timedelta(seconds=float(interval)),
+                automatic_source_count_threshold=count_threshold,
                 cron=config.runtime.profile_cron
                 if family == "profile" and config.runtime.profile_schedule_enabled
                 else None,
@@ -960,9 +966,15 @@ async def open_builtin_contexts(
                 await contexts.aclose_usage_recorder()
         return
     experience_index = OceanBaseExperienceFTSIndex()
-    indexes = [OceanBaseMemoryFTSIndex()]
-    if embedding_model is not None:
-        indexes.append(OceanBaseMemoryVectorIndex(embedding_model.profile))
+    if isinstance(database, SeekDBConfig):
+        # seekdb answers both native channels in one statement per hybrid search.
+        indexes: list[MemoryIndex] = [
+            SeekDBMemoryIndex(None if embedding_model is None else embedding_model.profile)
+        ]
+    else:
+        indexes = [OceanBaseMemoryFTSIndex()]
+        if embedding_model is not None:
+            indexes.append(OceanBaseMemoryVectorIndex(embedding_model.profile))
     index = CompositeMemoryIndex(*indexes)
     topic_indexes: list[TopicMemoryIndex] = [OceanBaseTopicMemoryFTSIndex()]
     if embedding_model is not None:
