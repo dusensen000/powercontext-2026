@@ -1,0 +1,13 @@
+diff --git a/src/taskboard/service.py b/src/taskboard/service.py
+index 7ca2591..261af1a 100644
+--- a/src/taskboard/service.py
++++ b/src/taskboard/service.py
+@@ -23,6 +23,7 @@ def list_tasks(
+ 
+     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))
+ 
+-    # TODO(REQ-003): apply the status filter here, before pagination.
++    if status is not None:
++        ordered = [task for task in ordered if task.status == status]
+ 
+     return ordered[offset : offset + limit]

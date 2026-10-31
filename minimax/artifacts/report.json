@@ -1,0 +1,881 @@
+{
+  "generated_at": "2026-10-31T11:57:58",
+  "duration_s": 19.73,
+  "task": "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，None 时返回全部；筛选必须在排序和分页之前完成，且不能破坏既有的排序、分页与输入校验行为。",
+  "provider": "stub",
+  "db_backend": "seekdb",
+  "state_backend": "powercontext",
+  "steps": [
+    {
+      "name": "reset artifacts",
+      "ok": true,
+      "detail": "cleaned",
+      "duration_s": 0.001
+    },
+    {
+      "name": "ingest specs/code/tests into database",
+      "ok": true,
+      "detail": "{'spec': 5, 'code': 5, 'test': 9, 'total': 19} (backend=seekdb, db=sddctx)",
+      "duration_s": 0.446
+    },
+    {
+      "name": "build development context",
+      "ok": true,
+      "detail": "specs=['REQ-003', 'REQ-001', 'REQ-002', 'REQ-004'] code=['list_tasks', 'Task'] tests=['test_no_status_returns_all', 'test_filter_active_only', 'test_filter_then_sort_and_paginate', 'test_sorts_by_due_date_then_id', 'test_pagination_after_sorting', 'test_invalid_limit_raises']",
+      "duration_s": 0.038
+    },
+    {
+      "name": "confirm target tests fail before the change",
+      "ok": true,
+      "detail": "target tests fail as expected: {'failed': 2}",
+      "duration_s": 2.619
+    },
+    {
+      "name": "MiniMax modifies code and target tests pass (provider=stub)",
+      "ok": true,
+      "detail": "provider=StubClient attempts=1",
+      "duration_s": 3.413
+    },
+    {
+      "name": "re-run target tests after the change",
+      "ok": true,
+      "detail": "target tests pass: {'passed': 2}",
+      "duration_s": 3.893
+    },
+    {
+      "name": "run regression tests",
+      "ok": true,
+      "detail": "regression tests pass: {'passed': 5}",
+      "duration_s": 2.823
+    },
+    {
+      "name": "write MiniMax development record",
+      "ok": true,
+      "detail": "wrote dev_record.json: 1 attempt(s), diff_sha1=8c0b45db929fce4a3289b190482ef34b8cfe439d",
+      "duration_s": 0.001
+    },
+    {
+      "name": "save task progress",
+      "ok": true,
+      "detail": "backend=powercontext scope=scp_41h9v5b1aafgyfcgjab2fztpq2 artifacts=['art_b11cfd939f084e49ae3e986be615e668']",
+      "duration_s": 0.63
+    },
+    {
+      "name": "resume progress in a new process",
+      "ok": true,
+      "detail": "separate process resumed taskboard-status-filter (1 file(s), status=done)",
+      "duration_s": 0.856
+    },
+    {
+      "name": "use resumed state in the next task context",
+      "ok": true,
+      "detail": "next-task context carries taskboard-status-filter (1 todo item(s)) and 3 specs",
+      "duration_s": 0.158
+    },
+    {
+      "name": "spec change re-ingest keeps context valid",
+      "ok": true,
+      "detail": "re-ingested 21 chunks in the evolved database; REQ-005 ranked first; phase-1 index unchanged",
+      "duration_s": 1.31
+    }
+  ],
+  "ingest": {
+    "spec": 5,
+    "code": 5,
+    "test": 9,
+    "total": 19
+  },
+  "context": {
+    "task": "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，None 时返回全部；筛选必须在排序和分页之前完成，且不能破坏既有的排序、分页与输入校验行为。",
+    "keywords": [
+      "list_tasks",
+      "status",
+      "none",
+      "不能",
+      "与输",
+      "且不",
+      "之前",
+      "任务",
+      "入校",
+      "全部",
+      "分页",
+      "前完",
+      "加按",
+      "只返",
+      "和分",
+      "回全",
+      "回该",
+      "在排",
+      "坏既",
+      "增加",
+      "完成",
+      "序和",
+      "必须",
+      "态的",
+      "排序",
+      "既有",
+      "时只",
+      "时返",
+      "有的",
+      "校验",
+      "状态",
+      "的任",
+      "的排",
+      "的能",
+      "破坏",
+      "空时",
+      "筛选",
+      "能力",
+      "能破",
+      "行为",
+      "该状",
+      "输入",
+      "返回",
+      "选必",
+      "选的",
+      "非空",
+      "页与",
+      "页之",
+      "须在",
+      "验行"
+    ],
+    "specs": [
+      {
+        "path": "specs/taskboard.md",
+        "req_id": "REQ-003",
+        "symbol": null,
+        "lineno": null,
+        "text": "## REQ-003 按状态筛选（目标需求）\n\n`list_tasks` 必须支持 `status` 参数：\n\n- 当 `status` 为非空字符串时，只返回 `status` 字段与之相等的任务。\n- 当 `status` 为 `None` 时，返回全部任务。\n- 状态筛选必须在排序与分页之前完成，保证分页结果只包含符合条件的任务。"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "req_id": "REQ-001",
+        "symbol": null,
+        "lineno": null,
+        "text": "## REQ-001 列表排序\n\n`list_tasks` 返回的任务必须按 `due_date` 升序排列；`due_date` 相同时按 `id` 升序排列。"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "req_id": "REQ-002",
+        "symbol": null,
+        "lineno": null,
+        "text": "## REQ-002 分页\n\n`list_tasks` 支持 `limit` 与 `offset` 参数：先完成排序，再进行分页切分，最后返回当前页。"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "req_id": "REQ-004",
+        "symbol": null,
+        "lineno": null,
+        "text": "## REQ-004 输入校验\n\n- `limit` 必须是正整数，否则抛出 `ValueError`。\n- `offset` 必须大于等于 0，否则抛出 `ValueError`。"
+      }
+    ],
+    "code": [
+      {
+        "path": "src/taskboard/service.py",
+        "req_id": null,
+        "symbol": "list_tasks",
+        "lineno": 6,
+        "text": "def list_tasks(\n    tasks: Iterable[Task],\n    limit: int = 10,\n    offset: int = 0,\n    status: Optional[str] = None,\n) -> List[Task]:\n    \"\"\"Return a sorted, paginated page of tasks.\n\n    REQ-001: sort by (due_date, id) ascending.\n    REQ-002: sort first, then paginate with limit/offset.\n    REQ-003: filter by status before sorting/pagination (not implemented yet).\n    REQ-004: validate limit/offset and raise ValueError on invalid input.\n    \"\"\"\n    if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\")\n    if offset < 0:\n        raise ValueError(\"offset must be >= 0\")\n\n    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n\n    # TODO(REQ-003): apply the status filter here, before pagination.\n\n    return ordered[offset : offset + limit]"
+      },
+      {
+        "path": "src/taskboard/models.py",
+        "req_id": null,
+        "symbol": "Task",
+        "lineno": 4,
+        "text": "@dataclass(frozen=True)\nclass Task:\n    id: int\n    title: str\n    status: str\n    due_date: str"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_no_status_returns_all",
+        "lineno": 29,
+        "text": "def test_no_status_returns_all():\n    result = list_tasks(make_tasks(), limit=10, offset=0, status=None)\n    assert len(result) == 5"
+      },
+      {
+        "path": "tests/test_target_filter.py",
+        "req_id": null,
+        "symbol": "test_filter_active_only",
+        "lineno": 17,
+        "text": "def test_filter_active_only():\n    result = list_tasks(make_tasks(), status=\"active\")\n    assert [t.id for t in result] == [1, 3, 5]"
+      },
+      {
+        "path": "tests/test_target_filter.py",
+        "req_id": null,
+        "symbol": "test_filter_then_sort_and_paginate",
+        "lineno": 22,
+        "text": "def test_filter_then_sort_and_paginate():\n    result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n    assert [t.id for t in result] == [1, 3]"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_sorts_by_due_date_then_id",
+        "lineno": 19,
+        "text": "def test_sorts_by_due_date_then_id():\n    result = list_tasks(make_tasks())\n    assert [t.id for t in result] == [1, 2, 3, 4, 5]"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_pagination_after_sorting",
+        "lineno": 24,
+        "text": "def test_pagination_after_sorting():\n    result = list_tasks(make_tasks(), limit=2, offset=1)\n    assert [t.id for t in result] == [2, 3]"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_invalid_limit_raises",
+        "lineno": 34,
+        "text": "def test_invalid_limit_raises():\n    with pytest.raises(ValueError):\n        list_tasks(make_tasks(), limit=0)"
+      }
+    ],
+    "sources": [
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-003"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-001"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-002"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-004"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/service.py",
+        "ref": "src/taskboard/service.py#L6:list_tasks"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/models.py",
+        "ref": "src/taskboard/models.py#L4:Task"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_no_status_returns_all"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_active_only"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_then_sort_and_paginate"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_sorts_by_due_date_then_id"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_pagination_after_sorting"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_invalid_limit_raises"
+      }
+    ]
+  },
+  "before": {
+    "target": "tests/test_target_filter.py",
+    "exit_code": 1,
+    "passed": false,
+    "duration_s": 2.598,
+    "counts": {
+      "failed": 2
+    },
+    "code_version": "f62d4a14ba700190",
+    "output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n___________________________ test_filter_active_only ____________________________\n\n    def test_filter_active_only():\n        result = list_tasks(make_tasks(), status=\"active\")\n>       assert [t.id for t in result] == [1, 3, 5]\nE       assert [1, 2, 3, 4, 5] == [1, 3, 5]\nE         \nE         At index 1 diff: 2 != 3\nE         Left contains 2 more items, first extra item: 4\nE         Use -v to get more diff\n\ntests/test_target_filter.py:19: AssertionError\n______________________ test_filter_then_sort_and_paginate ______________________\n\n    def test_filter_then_sort_and_paginate():\n        result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n>       assert [t.id for t in result] == [1, 3]\nE       assert [1, 2] == [1, 3]\nE         \nE         At index 1 diff: 2 != 3\nE         Use -v to get more diff\n\ntests/test_target_filter.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_target_filter.py::test_filter_active_only - assert [1, 2, 3...\nFAILED tests/test_target_filter.py::test_filter_then_sort_and_paginate - asse...\n2 failed in 0.22s",
+    "log": "artifacts/test_logs/before_target.log"
+  },
+  "development": {
+    "provider": "StubClient",
+    "attempts": [
+      {
+        "attempt": 1,
+        "provider": "StubClient",
+        "diff_sha1": "8c0b45db929fce4a3289b190482ef34b8cfe439d",
+        "diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\nindex 7ca2591..261af1a 100644\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -23,6 +23,7 @@ def list_tasks(\n \n     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    if status is not None:\n+        ordered = [task for task in ordered if task.status == status]\n \n     return ordered[offset : offset + limit]\n",
+        "applied": [
+          "src/taskboard/service.py"
+        ],
+        "error": null,
+        "target": {
+          "target": "tests/test_target_filter.py",
+          "exit_code": 0,
+          "passed": true,
+          "duration_s": 3.401,
+          "counts": {
+            "passed": 2
+          },
+          "code_version": "ab7c26e43d27e51d",
+          "output": "..                                                                       [100%]\n2 passed in 0.08s",
+          "log": "artifacts/test_logs/attempt1_target.log"
+        }
+      }
+    ],
+    "ok": true,
+    "final_diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\nindex 7ca2591..261af1a 100644\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -23,6 +23,7 @@ def list_tasks(\n \n     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    if status is not None:\n+        ordered = [task for task in ordered if task.status == status]\n \n     return ordered[offset : offset + limit]\n"
+  },
+  "after": {
+    "target": "tests/test_target_filter.py",
+    "exit_code": 0,
+    "passed": true,
+    "duration_s": 3.887,
+    "counts": {
+      "passed": 2
+    },
+    "code_version": "ab7c26e43d27e51d",
+    "output": "..                                                                       [100%]\n2 passed in 0.06s",
+    "log": "artifacts/test_logs/after_target.log"
+  },
+  "regression": {
+    "target": "tests/test_regression.py",
+    "exit_code": 0,
+    "passed": true,
+    "duration_s": 2.816,
+    "counts": {
+      "passed": 5
+    },
+    "code_version": "ab7c26e43d27e51d",
+    "output": ".....                                                                    [100%]\n5 passed in 0.08s",
+    "log": "artifacts/test_logs/regression.log"
+  },
+  "dev_record": {
+    "task_id": "taskboard-status-filter",
+    "task": "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，None 时返回全部；筛选必须在排序和分页之前完成，且不能破坏既有的排序、分页与输入校验行为。",
+    "created_at": "2026-10-31T11:57:55",
+    "provider": "StubClient",
+    "model": "stub-replay",
+    "protocol": "minimax",
+    "endpoint": "",
+    "live_minimax": false,
+    "context_file": "artifacts/context.json",
+    "context_sources": [
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-003"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-001"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-002"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-004"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/service.py",
+        "ref": "src/taskboard/service.py#L6:list_tasks"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/models.py",
+        "ref": "src/taskboard/models.py#L4:Task"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_no_status_returns_all"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_active_only"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_then_sort_and_paginate"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_sorts_by_due_date_then_id"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_pagination_after_sorting"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_invalid_limit_raises"
+      }
+    ],
+    "before": {
+      "target": "tests/test_target_filter.py",
+      "exit_code": 1,
+      "counts": {
+        "failed": 2
+      },
+      "code_version": "f62d4a14ba700190",
+      "log": "artifacts/test_logs/before_target.log",
+      "output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n___________________________ test_filter_active_only ____________________________\n\n    def test_filter_active_only():\n        result = list_tasks(make_tasks(), status=\"active\")\n>       assert [t.id for t in result] == [1, 3, 5]\nE       assert [1, 2, 3, 4, 5] == [1, 3, 5]\nE         \nE         At index 1 diff: 2 != 3\nE         Left contains 2 more items, first extra item: 4\nE         Use -v to get more diff\n\ntests/test_target_filter.py:19: AssertionError\n______________________ test_filter_then_sort_and_paginate ______________________\n\n    def test_filter_then_sort_and_paginate():\n        result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n>       assert [t.id for t in result] == [1, 3]\nE       assert [1, 2] == [1, 3]\nE         \nE         At index 1 diff: 2 != 3\nE         Use -v to get more diff\n\ntests/test_target_filter.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_target_filter.py::test_filter_active_only - assert [1, 2, 3...\nFAILED tests/test_target_filter.py::test_filter_then_sort_and_paginate - asse...\n2 failed in 0.22s"
+    },
+    "attempts": [
+      {
+        "attempt": 1,
+        "provider": "StubClient",
+        "prompt_file": "artifacts/prompts/attempt1.json",
+        "diff_sha1": "8c0b45db929fce4a3289b190482ef34b8cfe439d",
+        "applied": [
+          "src/taskboard/service.py"
+        ],
+        "error": null,
+        "diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\nindex 7ca2591..261af1a 100644\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -23,6 +23,7 @@ def list_tasks(\n \n     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    if status is not None:\n+        ordered = [task for task in ordered if task.status == status]\n \n     return ordered[offset : offset + limit]\n",
+        "target_tests": {
+          "passed": true,
+          "exit_code": 0,
+          "counts": {
+            "passed": 2
+          },
+          "code_version": "ab7c26e43d27e51d",
+          "log": "artifacts/test_logs/attempt1_target.log"
+        }
+      }
+    ],
+    "after": {
+      "target": "tests/test_target_filter.py",
+      "exit_code": 0,
+      "counts": {
+        "passed": 2
+      },
+      "code_version": "ab7c26e43d27e51d",
+      "log": "artifacts/test_logs/after_target.log"
+    },
+    "regression": {
+      "target": "tests/test_regression.py",
+      "exit_code": 0,
+      "counts": {
+        "passed": 5
+      },
+      "code_version": "ab7c26e43d27e51d",
+      "log": "artifacts/test_logs/regression.log"
+    },
+    "final_diff_file": "artifacts/diff.patch"
+  },
+  "state": {
+    "backend": "powercontext",
+    "scope_id": "scp_41h9v5b1aafgyfcgjab2fztpq2",
+    "artifacts": [
+      "art_b11cfd939f084e49ae3e986be615e668"
+    ]
+  },
+  "reload": {
+    "attempts": [
+      {
+        "applied": [
+          "src/taskboard/service.py"
+        ],
+        "attempt": 1,
+        "diff_sha1": "8c0b45db929fce4a3289b190482ef34b8cfe439d",
+        "error": null,
+        "provider": "StubClient",
+        "target_passed": true
+      }
+    ],
+    "changed_files": [
+      "src/taskboard/service.py"
+    ],
+    "context_sources": [
+      {
+        "path": "specs/taskboard.md",
+        "ref": "REQ-003",
+        "type": "spec"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "ref": "REQ-001",
+        "type": "spec"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "ref": "REQ-002",
+        "type": "spec"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "ref": "REQ-004",
+        "type": "spec"
+      },
+      {
+        "path": "src/taskboard/service.py",
+        "ref": "src/taskboard/service.py#L6:list_tasks",
+        "type": "code"
+      },
+      {
+        "path": "src/taskboard/models.py",
+        "ref": "src/taskboard/models.py#L4:Task",
+        "type": "code"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_no_status_returns_all",
+        "type": "test"
+      },
+      {
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_active_only",
+        "type": "test"
+      },
+      {
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_then_sort_and_paginate",
+        "type": "test"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_sorts_by_due_date_then_id",
+        "type": "test"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_pagination_after_sorting",
+        "type": "test"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_invalid_limit_raises",
+        "type": "test"
+      }
+    ],
+    "done": [
+      "实现 REQ-003：status 非空时在排序后、分页前筛选",
+      "目标测试 tests/test_target_filter.py 通过",
+      "回归测试 tests/test_regression.py 通过"
+    ],
+    "regression_tests": {
+      "counts": {
+        "passed": 5
+      },
+      "log": "artifacts/test_logs/regression.log",
+      "passed": true
+    },
+    "status": "done",
+    "target_tests": {
+      "counts": {
+        "passed": 2
+      },
+      "log": "artifacts/test_logs/after_target.log",
+      "passed": true
+    },
+    "task": "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，None 时返回全部；筛选必须在排序和分页之前完成，且不能破坏既有的排序、分页与输入校验行为。",
+    "task_id": "taskboard-status-filter",
+    "todo": [
+      "按 REQ-005（docs/sample-task.md 的演进场景）支持 priority 排序"
+    ],
+    "updated_at": "2026-10-31T11:57:55",
+    "verification": {
+      "regression_counts": {
+        "passed": 5
+      },
+      "regression_tests": true,
+      "target_counts": {
+        "passed": 2
+      },
+      "target_tests": true
+    },
+    "workdir": ".work/sample"
+  },
+  "resume": {
+    "task": "为 list_tasks 增加按 priority 降序排序的能力，priority 相同时保持 due_date 排序，并保持状态筛选与分页行为不变。",
+    "keywords": [
+      "list_tasks",
+      "due_date",
+      "priority",
+      "不变",
+      "与分",
+      "为不",
+      "保持",
+      "分页",
+      "加按",
+      "同时",
+      "增加",
+      "并保",
+      "序排",
+      "序的",
+      "态筛",
+      "持状",
+      "排序",
+      "时保",
+      "状态",
+      "的能",
+      "相同",
+      "筛选",
+      "能力",
+      "行为",
+      "选与",
+      "降序",
+      "页行"
+    ],
+    "specs": [
+      {
+        "path": "specs/taskboard.md",
+        "req_id": "REQ-003",
+        "symbol": null,
+        "lineno": null,
+        "text": "## REQ-003 按状态筛选（目标需求）\n\n`list_tasks` 必须支持 `status` 参数：\n\n- 当 `status` 为非空字符串时，只返回 `status` 字段与之相等的任务。\n- 当 `status` 为 `None` 时，返回全部任务。\n- 状态筛选必须在排序与分页之前完成，保证分页结果只包含符合条件的任务。"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "req_id": "REQ-001",
+        "symbol": null,
+        "lineno": null,
+        "text": "## REQ-001 列表排序\n\n`list_tasks` 返回的任务必须按 `due_date` 升序排列；`due_date` 相同时按 `id` 升序排列。"
+      },
+      {
+        "path": "specs/taskboard.md",
+        "req_id": "REQ-002",
+        "symbol": null,
+        "lineno": null,
+        "text": "## REQ-002 分页\n\n`list_tasks` 支持 `limit` 与 `offset` 参数：先完成排序，再进行分页切分，最后返回当前页。"
+      }
+    ],
+    "code": [
+      {
+        "path": "src/taskboard/service.py",
+        "req_id": null,
+        "symbol": "list_tasks",
+        "lineno": 6,
+        "text": "def list_tasks(\n    tasks: Iterable[Task],\n    limit: int = 10,\n    offset: int = 0,\n    status: Optional[str] = None,\n) -> List[Task]:\n    \"\"\"Return a sorted, paginated page of tasks.\n\n    REQ-001: sort by (due_date, id) ascending.\n    REQ-002: sort first, then paginate with limit/offset.\n    REQ-003: filter by status before sorting/pagination (not implemented yet).\n    REQ-004: validate limit/offset and raise ValueError on invalid input.\n    \"\"\"\n    if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\")\n    if offset < 0:\n        raise ValueError(\"offset must be >= 0\")\n\n    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n\n    # TODO(REQ-003): apply the status filter here, before pagination.\n\n    return ordered[offset : offset + limit]"
+      },
+      {
+        "path": "src/taskboard/models.py",
+        "req_id": null,
+        "symbol": "Task",
+        "lineno": 4,
+        "text": "@dataclass(frozen=True)\nclass Task:\n    id: int\n    title: str\n    status: str\n    due_date: str"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_sorts_by_due_date_then_id",
+        "lineno": 19,
+        "text": "def test_sorts_by_due_date_then_id():\n    result = list_tasks(make_tasks())\n    assert [t.id for t in result] == [1, 2, 3, 4, 5]"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_pagination_after_sorting",
+        "lineno": 24,
+        "text": "def test_pagination_after_sorting():\n    result = list_tasks(make_tasks(), limit=2, offset=1)\n    assert [t.id for t in result] == [2, 3]"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_no_status_returns_all",
+        "lineno": 29,
+        "text": "def test_no_status_returns_all():\n    result = list_tasks(make_tasks(), limit=10, offset=0, status=None)\n    assert len(result) == 5"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_invalid_limit_raises",
+        "lineno": 34,
+        "text": "def test_invalid_limit_raises():\n    with pytest.raises(ValueError):\n        list_tasks(make_tasks(), limit=0)"
+      },
+      {
+        "path": "tests/test_regression.py",
+        "req_id": null,
+        "symbol": "test_invalid_offset_raises",
+        "lineno": 39,
+        "text": "def test_invalid_offset_raises():\n    with pytest.raises(ValueError):\n        list_tasks(make_tasks(), offset=-1)"
+      },
+      {
+        "path": "tests/test_target_filter.py",
+        "req_id": null,
+        "symbol": "test_filter_active_only",
+        "lineno": 17,
+        "text": "def test_filter_active_only():\n    result = list_tasks(make_tasks(), status=\"active\")\n    assert [t.id for t in result] == [1, 3, 5]"
+      }
+    ],
+    "history": {
+      "task_id": "taskboard-status-filter",
+      "status": "done",
+      "updated_at": "2026-10-31T11:57:55",
+      "changed_files": [
+        "src/taskboard/service.py"
+      ],
+      "done": [
+        "实现 REQ-003：status 非空时在排序后、分页前筛选",
+        "目标测试 tests/test_target_filter.py 通过",
+        "回归测试 tests/test_regression.py 通过"
+      ],
+      "todo": [
+        "按 REQ-005（docs/sample-task.md 的演进场景）支持 priority 排序"
+      ],
+      "verification": {
+        "regression_counts": {
+          "passed": 5
+        },
+        "regression_tests": true,
+        "target_counts": {
+          "passed": 2
+        },
+        "target_tests": true
+      }
+    },
+    "sources": [
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-003"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-001"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-002"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/service.py",
+        "ref": "src/taskboard/service.py#L6:list_tasks"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/models.py",
+        "ref": "src/taskboard/models.py#L4:Task"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_sorts_by_due_date_then_id"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_pagination_after_sorting"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_no_status_returns_all"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_invalid_limit_raises"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_invalid_offset_raises"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_active_only"
+      }
+    ]
+  },
+  "evolve": {
+    "counts": {
+      "spec": 7,
+      "code": 5,
+      "test": 9,
+      "total": 21
+    },
+    "specs": [
+      "REQ-005",
+      "REQ-003",
+      "REQ-001",
+      "REQ-002"
+    ],
+    "sources": [
+      {
+        "type": "spec",
+        "path": "specs/taskboard-phase2.md",
+        "ref": "REQ-005"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-003"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-001"
+      },
+      {
+        "type": "spec",
+        "path": "specs/taskboard.md",
+        "ref": "REQ-002"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/service.py",
+        "ref": "src/taskboard/service.py#L6:list_tasks"
+      },
+      {
+        "type": "code",
+        "path": "src/taskboard/models.py",
+        "ref": "src/taskboard/models.py#L4:Task"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_sorts_by_due_date_then_id"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_pagination_after_sorting"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_no_status_returns_all"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_invalid_limit_raises"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_regression.py",
+        "ref": "tests/test_regression.py::test_invalid_offset_raises"
+      },
+      {
+        "type": "test",
+        "path": "tests/test_target_filter.py",
+        "ref": "tests/test_target_filter.py::test_filter_active_only"
+      }
+    ]
+  }
+}

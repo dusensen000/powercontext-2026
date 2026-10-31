@@ -1,0 +1,4 @@
+2026-10-31T11:57:55	backend=powercontext	action=scope	scope_id=scp_41h9v5b1aafgyfcgjab2fztpq2
+2026-10-31T11:57:56	backend=powercontext	action=save	scope=scp_41h9v5b1aafgyfcgjab2fztpq2 task_id=taskboard-status-filter artifacts=['art_b11cfd939f084e49ae3e986be615e668']
+2026-10-31T11:57:56	backend=powercontext	action=load	scope=scp_41h9v5b1aafgyfcgjab2fztpq2 task_id=taskboard-status-filter candidates=2
+2026-10-31T11:57:57	backend=powercontext	action=load	scope=scp_41h9v5b1aafgyfcgjab2fztpq2 task_id=taskboard-status-filter candidates=2

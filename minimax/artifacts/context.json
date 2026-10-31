@@ -1,0 +1,207 @@
+{
+  "task": "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，None 时返回全部；筛选必须在排序和分页之前完成，且不能破坏既有的排序、分页与输入校验行为。",
+  "keywords": [
+    "list_tasks",
+    "status",
+    "none",
+    "不能",
+    "与输",
+    "且不",
+    "之前",
+    "任务",
+    "入校",
+    "全部",
+    "分页",
+    "前完",
+    "加按",
+    "只返",
+    "和分",
+    "回全",
+    "回该",
+    "在排",
+    "坏既",
+    "增加",
+    "完成",
+    "序和",
+    "必须",
+    "态的",
+    "排序",
+    "既有",
+    "时只",
+    "时返",
+    "有的",
+    "校验",
+    "状态",
+    "的任",
+    "的排",
+    "的能",
+    "破坏",
+    "空时",
+    "筛选",
+    "能力",
+    "能破",
+    "行为",
+    "该状",
+    "输入",
+    "返回",
+    "选必",
+    "选的",
+    "非空",
+    "页与",
+    "页之",
+    "须在",
+    "验行"
+  ],
+  "specs": [
+    {
+      "path": "specs/taskboard.md",
+      "req_id": "REQ-003",
+      "symbol": null,
+      "lineno": null,
+      "text": "## REQ-003 按状态筛选（目标需求）\n\n`list_tasks` 必须支持 `status` 参数：\n\n- 当 `status` 为非空字符串时，只返回 `status` 字段与之相等的任务。\n- 当 `status` 为 `None` 时，返回全部任务。\n- 状态筛选必须在排序与分页之前完成，保证分页结果只包含符合条件的任务。"
+    },
+    {
+      "path": "specs/taskboard.md",
+      "req_id": "REQ-001",
+      "symbol": null,
+      "lineno": null,
+      "text": "## REQ-001 列表排序\n\n`list_tasks` 返回的任务必须按 `due_date` 升序排列；`due_date` 相同时按 `id` 升序排列。"
+    },
+    {
+      "path": "specs/taskboard.md",
+      "req_id": "REQ-002",
+      "symbol": null,
+      "lineno": null,
+      "text": "## REQ-002 分页\n\n`list_tasks` 支持 `limit` 与 `offset` 参数：先完成排序，再进行分页切分，最后返回当前页。"
+    },
+    {
+      "path": "specs/taskboard.md",
+      "req_id": "REQ-004",
+      "symbol": null,
+      "lineno": null,
+      "text": "## REQ-004 输入校验\n\n- `limit` 必须是正整数，否则抛出 `ValueError`。\n- `offset` 必须大于等于 0，否则抛出 `ValueError`。"
+    }
+  ],
+  "code": [
+    {
+      "path": "src/taskboard/service.py",
+      "req_id": null,
+      "symbol": "list_tasks",
+      "lineno": 6,
+      "text": "def list_tasks(\n    tasks: Iterable[Task],\n    limit: int = 10,\n    offset: int = 0,\n    status: Optional[str] = None,\n) -> List[Task]:\n    \"\"\"Return a sorted, paginated page of tasks.\n\n    REQ-001: sort by (due_date, id) ascending.\n    REQ-002: sort first, then paginate with limit/offset.\n    REQ-003: filter by status before sorting/pagination (not implemented yet).\n    REQ-004: validate limit/offset and raise ValueError on invalid input.\n    \"\"\"\n    if limit <= 0:\n        raise ValueError(\"limit must be a positive integer\")\n    if offset < 0:\n        raise ValueError(\"offset must be >= 0\")\n\n    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n\n    # TODO(REQ-003): apply the status filter here, before pagination.\n\n    return ordered[offset : offset + limit]"
+    },
+    {
+      "path": "src/taskboard/models.py",
+      "req_id": null,
+      "symbol": "Task",
+      "lineno": 4,
+      "text": "@dataclass(frozen=True)\nclass Task:\n    id: int\n    title: str\n    status: str\n    due_date: str"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/test_regression.py",
+      "req_id": null,
+      "symbol": "test_no_status_returns_all",
+      "lineno": 29,
+      "text": "def test_no_status_returns_all():\n    result = list_tasks(make_tasks(), limit=10, offset=0, status=None)\n    assert len(result) == 5"
+    },
+    {
+      "path": "tests/test_target_filter.py",
+      "req_id": null,
+      "symbol": "test_filter_active_only",
+      "lineno": 17,
+      "text": "def test_filter_active_only():\n    result = list_tasks(make_tasks(), status=\"active\")\n    assert [t.id for t in result] == [1, 3, 5]"
+    },
+    {
+      "path": "tests/test_target_filter.py",
+      "req_id": null,
+      "symbol": "test_filter_then_sort_and_paginate",
+      "lineno": 22,
+      "text": "def test_filter_then_sort_and_paginate():\n    result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n    assert [t.id for t in result] == [1, 3]"
+    },
+    {
+      "path": "tests/test_regression.py",
+      "req_id": null,
+      "symbol": "test_sorts_by_due_date_then_id",
+      "lineno": 19,
+      "text": "def test_sorts_by_due_date_then_id():\n    result = list_tasks(make_tasks())\n    assert [t.id for t in result] == [1, 2, 3, 4, 5]"
+    },
+    {
+      "path": "tests/test_regression.py",
+      "req_id": null,
+      "symbol": "test_pagination_after_sorting",
+      "lineno": 24,
+      "text": "def test_pagination_after_sorting():\n    result = list_tasks(make_tasks(), limit=2, offset=1)\n    assert [t.id for t in result] == [2, 3]"
+    },
+    {
+      "path": "tests/test_regression.py",
+      "req_id": null,
+      "symbol": "test_invalid_limit_raises",
+      "lineno": 34,
+      "text": "def test_invalid_limit_raises():\n    with pytest.raises(ValueError):\n        list_tasks(make_tasks(), limit=0)"
+    }
+  ],
+  "sources": [
+    {
+      "type": "spec",
+      "path": "specs/taskboard.md",
+      "ref": "REQ-003"
+    },
+    {
+      "type": "spec",
+      "path": "specs/taskboard.md",
+      "ref": "REQ-001"
+    },
+    {
+      "type": "spec",
+      "path": "specs/taskboard.md",
+      "ref": "REQ-002"
+    },
+    {
+      "type": "spec",
+      "path": "specs/taskboard.md",
+      "ref": "REQ-004"
+    },
+    {
+      "type": "code",
+      "path": "src/taskboard/service.py",
+      "ref": "src/taskboard/service.py#L6:list_tasks"
+    },
+    {
+      "type": "code",
+      "path": "src/taskboard/models.py",
+      "ref": "src/taskboard/models.py#L4:Task"
+    },
+    {
+      "type": "test",
+      "path": "tests/test_regression.py",
+      "ref": "tests/test_regression.py::test_no_status_returns_all"
+    },
+    {
+      "type": "test",
+      "path": "tests/test_target_filter.py",
+      "ref": "tests/test_target_filter.py::test_filter_active_only"
+    },
+    {
+      "type": "test",
+      "path": "tests/test_target_filter.py",
+      "ref": "tests/test_target_filter.py::test_filter_then_sort_and_paginate"
+    },
+    {
+      "type": "test",
+      "path": "tests/test_regression.py",
+      "ref": "tests/test_regression.py::test_sorts_by_due_date_then_id"
+    },
+    {
+      "type": "test",
+      "path": "tests/test_regression.py",
+      "ref": "tests/test_regression.py::test_pagination_after_sorting"
+    },
+    {
+      "type": "test",
+      "path": "tests/test_regression.py",
+      "ref": "tests/test_regression.py::test_invalid_limit_raises"
+    }
+  ]
+}

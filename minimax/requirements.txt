@@ -1,0 +1,8 @@
+# Runtime dependencies for the SDD context module.
+# seekdb ships Linux wheels only; use SDDCTX_DB_BACKEND=sqlite for local dev.
+pylibseekdb>=1.0.0
+pymysql>=1.1
+pytest>=8.0
+powercontext[server]==1.4.1
+mcp>=1.0
+typer>=0.12
