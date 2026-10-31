@@ -1,0 +1,18 @@
+API: http://127.0.0.1:8770
+[session 2] new Dify conversation, same player_id
+  [ok] cross-session recall: debt == 8 (got 8)
+  [ok] cross-session recall: grudge == 1 (got 1)
+  [ok] cross-session recall: memories >= 2 (got 2)
+  player: 老巴，我又来了，今天有什么好酒？
+  bartender: 又来了？先别急着点酒。你欠我 8 币，你上回的原话我还留着呢。我左眼把你上次改口的样子记得清清楚楚。
+  —— 老巴的账本：第3次照面 · 欠账 8 币 · 仇怨 1 格 · 本回合：闲聊 · 记忆已写入 PowerContext（scp_5bch0s5e…）
+  recalled memories: 2
+    - 记忆酒馆·第2次照面｜玩家 demo_alice 说：“我昨天说的是下周还，你可别记错了。”｜老巴回：“你昨天说的是‘明天还’，今天又改口下周？我左眼不眨，不代表它瞎。这 8 币我记下了，仇也
+    - 记忆酒馆·第1次照面｜玩家 demo_alice 说：“老巴，来杯火焰威士忌，先记我账上，明天还你。”｜老巴回：“火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。”｜判定：赊账（赊
+  player: 对不起，上次是我不对。我这就还你 8 币。
+  bartender: ……行，8 币放下。杯子还给你留着，别再让我用假眼盯你。
+  —— 老巴的账本：第4次照面 · 欠账 0 币 · 仇怨 0 格 · 本回合：还账并道歉（收下 8 币，并接受了道歉） · 记忆已写入 PowerContext（scp_5bch0s5e…）
+  [ok] after repay: debt == 0 (got 0)
+  [ok] after apology: grudge == 0 (got 0)
+  evidence -> /root/tavern/evidence/session2.json
+done in 0.23s

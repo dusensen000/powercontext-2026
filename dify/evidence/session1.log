@@ -1,0 +1,15 @@
+API: http://127.0.0.1:8770
+[session 1] reset + 赊账 + 撒谎
+账本翻篇：seekdb 中该玩家的状态与回合已清零，PowerContext 改用新一代 scope，旧记忆不再参与。
+  player: 老巴，来杯火焰威士忌，先记我账上，明天还你。
+  bartender: 火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。
+  —— 老巴的账本：第1次照面 · 欠账 8 币 · 仇怨 0 格 · 本回合：赊账（赊下火焰威士忌（8 币）） · 记忆已写入 PowerContext（scp_5bch0s5e…）
+  player: 我昨天说的是下周还，你可别记错了。
+  bartender: 你昨天说的是‘明天还’，今天又改口下周？我左眼不眨，不代表它瞎。这 8 币我记下了，仇也记一格。
+  —— 老巴的账本：第2次照面 · 欠账 8 币 · 仇怨 1 格 · 本回合：撒谎（被假眼识破，记仇一格） · 记忆已写入 PowerContext（scp_5bch0s5e…）
+  [ok] seekdb ledger: debt == 8 (got 8)
+  [ok] seekdb ledger: grudge == 1 (got 1)
+  [ok] seekdb ledger: visits == 2 (got 2)
+  [ok] PowerContext holds at least 2 turn memories (got 2)
+  evidence -> /root/tavern/evidence/session1.json
+done in 0.27s

@@ -1,0 +1,85 @@
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[]	sql=CREATE TABLE IF NOT EXISTS lore (id INT PRIMARY KEY, category VARCHAR(32), title VARCHAR(128),content TEXT, keywords VARCHAR(255), price INT DEFAULT 0)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[]	sql=CREATE TABLE IF NOT EXISTS players (player_id VARCHAR(64) PRIMARY KEY, epoch INT DEFAULT 0,pc_scope_id VARCHAR(80), visits INT DEFAULT 0, debt INT DEFAULT 0,grudge INT DEFAULT 0, last_seen VARCHAR(32), memo TEXT)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[]	sql=CREATE TABLE IF NOT EXISTS turns (id BIGINT PRIMARY KEY AUTO_INCREMENT, player_id VARCHAR(64),epoch INT, ts VARCHAR(32), message TEXT, reply TEXT,intent VARCHAR(32), delta_debt INT, delta_grudge INT)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=1	params=[]	sql=SELECT COUNT(*) AS n FROM lore
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[1, 'drink', '火焰威士忌', '入口像被龙舔了一口，回味是蜂蜜。杯口会自己冒火星，喝之前老巴会先收走你的眉毛。', '火焰,威士忌,烈酒,龙', 8]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[2, 'drink', '月光艾尔', '杯口浮着一层银色泡沫，喝下去会想起初恋。独眼莉娜说这酒兑了她三个故事。', '月光,艾尔,啤酒,初恋', 5]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[3, 'drink', '龙王陈酿', '酒窖最深处只存三桶。老巴从不主动拿出来，除非你先把旧账结清。', '龙王,陈酿,珍藏,贵的酒', 30]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[4, 'drink', '忘忧茶', '喝了会忘记十分钟内发生的事。老巴用它赖掉自己的口误，也用它送走不想再见的客人。', '忘忧,茶,忘记', 3]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[5, 'drink', '爆炸蘑菇汤', '端上来时还在冒泡，喝之前要签免责声明。上周有个矮人签了，现在他的胡子长在眉毛上。', '蘑菇,汤,爆炸,免责', 6]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[6, 'drink', '铁锈钉子酒', '矿工的最爱，杯子里真的泡着一根钉子。老巴说钉子不是用来喝的，是用来提醒你别赊账。', '钉子,矿工,便宜', 2]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[7, 'rumor', '地下室有龙', '有人说地窖尽头传来鼾声，老巴坚持那是锅炉。可锅炉为什么每周要吃掉一桶月光艾尔？', '地下室,地窖,龙,鼾声', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[8, 'rumor', '老巴的假眼', '他的左眼从不眨。镇上的人说，那只眼睛能看穿谎言，也能记住每一个赖账的夜晚。', '假眼,左眼,谎言', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[9, 'rumor', '镇长欠账', '镇长三年前赊了一整桶月光艾尔，至今没还。老巴把那张欠条裱起来，挂在收债人铁算盘够得着的地方。', '镇长,欠账,艾尔', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[10, 'rumor', '后门的客人', '凌晨三点，总有穿黑袍的人从后门进来，只点一杯忘忧茶，喝完就走，从不说话。', '后门,黑袍,凌晨', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[11, 'rumor', '酒杯编号', '每个常客都有专属酒杯，杯底刻着他们第一次欠账的日期。老巴说那是最诚实的族谱。', '酒杯,编号,常客,杯底', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[12, 'rumor', '会说话的猫', '酒馆的猫叫阿账，会重复客人说过的最后一句话。所以没人敢在它面前承认自己赖账。', '猫,阿账,说话', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[13, 'rumor', '吟游诗人的谎', '小调唱的歌一半是真的，另一半是他自己编的。老巴说：编得好的那半，也算还了酒钱。', '吟游诗人,小调,歌', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[14, 'regular', '独眼莉娜', '赏金猎人。喝月光艾尔从不付现，只讲一个故事抵账。老巴每次都说不值，但每次都给她续杯。', '莉娜,赏金猎人,独眼', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[15, 'regular', '铁算盘', '收债人，每周四来核对老巴的账本，最讨厌赖账。他打算盘的声音像在给谁数剩下的日子。', '铁算盘,收债,账本,周四', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[16, 'regular', '小调', '吟游诗人，欠了老巴十七杯酒和一首没写完的歌。他坚称歌写完就能抵债，老巴坚称他永远写不完。', '小调,吟游诗人,欠', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[17, 'regular', '老巴', '记忆酒馆的老板。左眼是假的，右眼很毒。他记得每个赖账的人，也记得每一句道歉。', '老巴,老板,酒保', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[18, 'rule', '赊账规则', '赊账要在杯垫上签名，利息是每天一个离谱的故事。故事不好笑，利息翻倍。', '赊账,规则,签名,利息', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[19, 'rule', '撒谎惩罚', '被老巴识破一次撒谎，罚一杯铁锈钉子酒，并在账本上记仇一格。赖账可以商量，撒谎不行。', '撒谎,惩罚,罚酒', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[20, 'rule', '偷窃惩罚', '顺走酒杯的人要赔双倍，还会被猫阿账记一辈子。阿账的记忆力比老巴的假眼还可怕。', '偷,顺走,赔,猫', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[21, 'rule', '打烊规矩', '凌晨四点打烊。赖着不走的人，会被老巴用假眼盯着，直到自己觉得不好意思。', '打烊,凌晨,规矩', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[22, 'rule', '还账方式', '现金、故事，或者帮老巴擦一晚上杯子，三选一。老巴通常建议选第三个，因为前两个他见得太多了。', '还账,现金,故事,擦杯子', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[23, 'secret', '老巴的女儿', '吧台后面挂着一幅旧画像，画里的姑娘和老巴有一样的左眼。没人敢问，老巴也从不主动说。', '画像,女儿,姑娘', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=[24, 'secret', '三号桌', '三号桌永远空着，只有老巴同意的人才可以坐。据说上一个坐下的人，欠的账到现在还没还清。', '三号桌,空着,座位', 0]	sql=INSERT INTO lore (id, category, title, content, keywords, price) VALUES (%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=1	params=[]	sql=SELECT COUNT(*) AS n FROM lore
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=['demo_alice']	sql=UPDATE players SET epoch = epoch + 1, pc_scope_id = NULL, visits = 0, debt = 0, grudge = 0, memo = '', last_seen = NULL WHERE player_id = %s
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=['demo_alice']	sql=DELETE FROM turns WHERE player_id = %s
+2026-10-31T12:23:07	backend=seekdb	db=tavern	rows=0	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=0	params=['demo_alice']	sql=INSERT INTO players (player_id, epoch, visits, debt, grudge, memo) VALUES (%s, 0, 0, 0, 0, '')
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=6	params=['drink']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=5	params=['rule']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=0	params=['demo_alice', 0]	sql=SELECT ts, message, reply, intent, delta_debt, delta_grudge FROM turns WHERE player_id = %s AND epoch = %s ORDER BY id DESC LIMIT 3
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=0	params=['scp_5bch0s5erkknmj78rspm3aaezc', 'demo_alice']	sql=UPDATE players SET pc_scope_id = %s WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=0	params=[1, 8, 0, '2026-10-31T12:23:08', '赊下火焰威士忌（8 币）', 'demo_alice']	sql=UPDATE players SET visits = %s, debt = %s, grudge = %s, last_seen = %s, memo = %s WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=0	params=['demo_alice', 0, '2026-10-31T12:23:08', '老巴，来杯火焰威士忌，先记我账上，明天还你。', '火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。', 'credit', 8, 0]	sql=INSERT INTO turns (player_id, epoch, ts, message, reply, intent, delta_debt, delta_grudge) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=6	params=['drink']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=5	params=['rule']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice', 0]	sql=SELECT ts, message, reply, intent, delta_debt, delta_grudge FROM turns WHERE player_id = %s AND epoch = %s ORDER BY id DESC LIMIT 3
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=0	params=[2, 8, 1, '2026-10-31T12:23:08', '被假眼识破，记仇一格', 'demo_alice']	sql=UPDATE players SET visits = %s, debt = %s, grudge = %s, last_seen = %s, memo = %s WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=0	params=['demo_alice', 0, '2026-10-31T12:23:08', '我昨天说的是下周还，你可别记错了。', '你昨天说的是‘明天还’，今天又改口下周？我左眼不眨，不代表它瞎。这 8 币我记下了，仇也记一格。', 'lie', 0, 1]	sql=INSERT INTO turns (player_id, epoch, ts, message, reply, intent, delta_debt, delta_grudge) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:08	backend=seekdb	db=tavern	rows=2	params=['demo_alice', 0]	sql=SELECT ts, message, reply, intent, delta_debt, delta_grudge FROM turns WHERE player_id = %s AND epoch = %s ORDER BY id DESC LIMIT 10
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=0	params=[]	sql=CREATE TABLE IF NOT EXISTS lore (id INT PRIMARY KEY, category VARCHAR(32), title VARCHAR(128),content TEXT, keywords VARCHAR(255), price INT DEFAULT 0)
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=0	params=[]	sql=CREATE TABLE IF NOT EXISTS players (player_id VARCHAR(64) PRIMARY KEY, epoch INT DEFAULT 0,pc_scope_id VARCHAR(80), visits INT DEFAULT 0, debt INT DEFAULT 0,grudge INT DEFAULT 0, last_seen VARCHAR(32), memo TEXT)
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=0	params=[]	sql=CREATE TABLE IF NOT EXISTS turns (id BIGINT PRIMARY KEY AUTO_INCREMENT, player_id VARCHAR(64),epoch INT, ts VARCHAR(32), message TEXT, reply TEXT,intent VARCHAR(32), delta_debt INT, delta_grudge INT)
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=[]	sql=SELECT COUNT(*) AS n FROM lore
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=[]	sql=SELECT COUNT(*) AS n FROM lore
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=6	params=['drink']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=5	params=['rule']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=2	params=['demo_alice', 0]	sql=SELECT ts, message, reply, intent, delta_debt, delta_grudge FROM turns WHERE player_id = %s AND epoch = %s ORDER BY id DESC LIMIT 3
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=0	params=[3, 8, 1, '2026-10-31T12:23:11', '', 'demo_alice']	sql=UPDATE players SET visits = %s, debt = %s, grudge = %s, last_seen = %s, memo = %s WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=0	params=['demo_alice', 0, '2026-10-31T12:23:11', '老巴，我又来了，今天有什么好酒？', '又来了？先别急着点酒。你欠我 8 币，你上回的原话我还留着呢。我左眼把你上次改口的样子记得清清楚楚。', 'chat', 0, 0]	sql=INSERT INTO turns (player_id, epoch, ts, message, reply, intent, delta_debt, delta_grudge) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=6	params=['drink']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=5	params=['rule']	sql=SELECT * FROM lore WHERE category = %s ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=3	params=['demo_alice', 0]	sql=SELECT ts, message, reply, intent, delta_debt, delta_grudge FROM turns WHERE player_id = %s AND epoch = %s ORDER BY id DESC LIMIT 3
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=24	params=[]	sql=SELECT * FROM lore ORDER BY id
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=0	params=[4, 0, 0, '2026-10-31T12:23:11', '收下 8 币，并接受了道歉', 'demo_alice']	sql=UPDATE players SET visits = %s, debt = %s, grudge = %s, last_seen = %s, memo = %s WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=0	params=['demo_alice', 0, '2026-10-31T12:23:11', '对不起，上次是我不对。我这就还你 8 币。', '……行，8 币放下。杯子还给你留着，别再让我用假眼盯你。', 'repay_apology', -8, -1]	sql=INSERT INTO turns (player_id, epoch, ts, message, reply, intent, delta_debt, delta_grudge) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=1	params=['demo_alice']	sql=SELECT * FROM players WHERE player_id = %s
+2026-10-31T12:23:11	backend=seekdb	db=tavern	rows=4	params=['demo_alice', 0]	sql=SELECT ts, message, reply, intent, delta_debt, delta_grudge FROM turns WHERE player_id = %s AND epoch = %s ORDER BY id DESC LIMIT 10

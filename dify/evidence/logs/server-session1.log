@@ -1,0 +1,15 @@
+INFO:     Started server process [31]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8770 (Press CTRL+C to quit)
+INFO:     127.0.0.1:36414 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36422 - "POST /reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36432 - "POST /recall HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36446 - "POST /remember HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36452 - "POST /recall HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36462 - "POST /remember HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36478 - "GET /state?player_id=demo_alice HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [31]

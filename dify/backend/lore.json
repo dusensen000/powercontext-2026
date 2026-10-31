@@ -1,0 +1,30 @@
+[
+  {"id": 1, "category": "drink", "title": "火焰威士忌", "price": 8, "keywords": "火焰,威士忌,烈酒,龙", "content": "入口像被龙舔了一口，回味是蜂蜜。杯口会自己冒火星，喝之前老巴会先收走你的眉毛。"},
+  {"id": 2, "category": "drink", "title": "月光艾尔", "price": 5, "keywords": "月光,艾尔,啤酒,初恋", "content": "杯口浮着一层银色泡沫，喝下去会想起初恋。独眼莉娜说这酒兑了她三个故事。"},
+  {"id": 3, "category": "drink", "title": "龙王陈酿", "price": 30, "keywords": "龙王,陈酿,珍藏,贵的酒", "content": "酒窖最深处只存三桶。老巴从不主动拿出来，除非你先把旧账结清。"},
+  {"id": 4, "category": "drink", "title": "忘忧茶", "price": 3, "keywords": "忘忧,茶,忘记", "content": "喝了会忘记十分钟内发生的事。老巴用它赖掉自己的口误，也用它送走不想再见的客人。"},
+  {"id": 5, "category": "drink", "title": "爆炸蘑菇汤", "price": 6, "keywords": "蘑菇,汤,爆炸,免责", "content": "端上来时还在冒泡，喝之前要签免责声明。上周有个矮人签了，现在他的胡子长在眉毛上。"},
+  {"id": 6, "category": "drink", "title": "铁锈钉子酒", "price": 2, "keywords": "钉子,矿工,便宜", "content": "矿工的最爱，杯子里真的泡着一根钉子。老巴说钉子不是用来喝的，是用来提醒你别赊账。"},
+
+  {"id": 7, "category": "rumor", "title": "地下室有龙", "price": 0, "keywords": "地下室,地窖,龙,鼾声", "content": "有人说地窖尽头传来鼾声，老巴坚持那是锅炉。可锅炉为什么每周要吃掉一桶月光艾尔？"},
+  {"id": 8, "category": "rumor", "title": "老巴的假眼", "price": 0, "keywords": "假眼,左眼,谎言", "content": "他的左眼从不眨。镇上的人说，那只眼睛能看穿谎言，也能记住每一个赖账的夜晚。"},
+  {"id": 9, "category": "rumor", "title": "镇长欠账", "price": 0, "keywords": "镇长,欠账,艾尔", "content": "镇长三年前赊了一整桶月光艾尔，至今没还。老巴把那张欠条裱起来，挂在收债人铁算盘够得着的地方。"},
+  {"id": 10, "category": "rumor", "title": "后门的客人", "price": 0, "keywords": "后门,黑袍,凌晨", "content": "凌晨三点，总有穿黑袍的人从后门进来，只点一杯忘忧茶，喝完就走，从不说话。"},
+  {"id": 11, "category": "rumor", "title": "酒杯编号", "price": 0, "keywords": "酒杯,编号,常客,杯底", "content": "每个常客都有专属酒杯，杯底刻着他们第一次欠账的日期。老巴说那是最诚实的族谱。"},
+  {"id": 12, "category": "rumor", "title": "会说话的猫", "price": 0, "keywords": "猫,阿账,说话", "content": "酒馆的猫叫阿账，会重复客人说过的最后一句话。所以没人敢在它面前承认自己赖账。"},
+  {"id": 13, "category": "rumor", "title": "吟游诗人的谎", "price": 0, "keywords": "吟游诗人,小调,歌", "content": "小调唱的歌一半是真的，另一半是他自己编的。老巴说：编得好的那半，也算还了酒钱。"},
+
+  {"id": 14, "category": "regular", "title": "独眼莉娜", "price": 0, "keywords": "莉娜,赏金猎人,独眼", "content": "赏金猎人。喝月光艾尔从不付现，只讲一个故事抵账。老巴每次都说不值，但每次都给她续杯。"},
+  {"id": 15, "category": "regular", "title": "铁算盘", "price": 0, "keywords": "铁算盘,收债,账本,周四", "content": "收债人，每周四来核对老巴的账本，最讨厌赖账。他打算盘的声音像在给谁数剩下的日子。"},
+  {"id": 16, "category": "regular", "title": "小调", "price": 0, "keywords": "小调,吟游诗人,欠", "content": "吟游诗人，欠了老巴十七杯酒和一首没写完的歌。他坚称歌写完就能抵债，老巴坚称他永远写不完。"},
+  {"id": 17, "category": "regular", "title": "老巴", "price": 0, "keywords": "老巴,老板,酒保", "content": "记忆酒馆的老板。左眼是假的，右眼很毒。他记得每个赖账的人，也记得每一句道歉。"},
+
+  {"id": 18, "category": "rule", "title": "赊账规则", "price": 0, "keywords": "赊账,规则,签名,利息", "content": "赊账要在杯垫上签名，利息是每天一个离谱的故事。故事不好笑，利息翻倍。"},
+  {"id": 19, "category": "rule", "title": "撒谎惩罚", "price": 0, "keywords": "撒谎,惩罚,罚酒", "content": "被老巴识破一次撒谎，罚一杯铁锈钉子酒，并在账本上记仇一格。赖账可以商量，撒谎不行。"},
+  {"id": 20, "category": "rule", "title": "偷窃惩罚", "price": 0, "keywords": "偷,顺走,赔,猫", "content": "顺走酒杯的人要赔双倍，还会被猫阿账记一辈子。阿账的记忆力比老巴的假眼还可怕。"},
+  {"id": 21, "category": "rule", "title": "打烊规矩", "price": 0, "keywords": "打烊,凌晨,规矩", "content": "凌晨四点打烊。赖着不走的人，会被老巴用假眼盯着，直到自己觉得不好意思。"},
+  {"id": 22, "category": "rule", "title": "还账方式", "price": 0, "keywords": "还账,现金,故事,擦杯子", "content": "现金、故事，或者帮老巴擦一晚上杯子，三选一。老巴通常建议选第三个，因为前两个他见得太多了。"},
+
+  {"id": 23, "category": "secret", "title": "老巴的女儿", "price": 0, "keywords": "画像,女儿,姑娘", "content": "吧台后面挂着一幅旧画像，画里的姑娘和老巴有一样的左眼。没人敢问，老巴也从不主动说。"},
+  {"id": 24, "category": "secret", "title": "三号桌", "price": 0, "keywords": "三号桌,空着,座位", "content": "三号桌永远空着，只有老巴同意的人才可以坐。据说上一个坐下的人，欠的账到现在还没还清。"}
+]

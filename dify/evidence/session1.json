@@ -1,0 +1,176 @@
+{
+  "player_id": "demo_alice",
+  "api": "http://127.0.0.1:8770",
+  "steps": [
+    {
+      "message": "老巴，来杯火焰威士忌，先记我账上，明天还你。",
+      "recall": {
+        "player": {
+          "player_id": "demo_alice",
+          "visits": 0,
+          "debt": 0,
+          "grudge": 0,
+          "last_seen": null,
+          "epoch": 0
+        },
+        "lore": [
+          {
+            "title": "火焰威士忌",
+            "category": "drink",
+            "price": 8,
+            "content": "入口像被龙舔了一口，回味是蜂蜜。杯口会自己冒火星，喝之前老巴会先收走你的眉毛。"
+          },
+          {
+            "title": "老巴",
+            "category": "regular",
+            "price": 0,
+            "content": "记忆酒馆的老板。左眼是假的，右眼很毒。他记得每个赖账的人，也记得每一句道歉。"
+          },
+          {
+            "title": "月光艾尔",
+            "category": "drink",
+            "price": 5,
+            "content": "杯口浮着一层银色泡沫，喝下去会想起初恋。独眼莉娜说这酒兑了她三个故事。"
+          }
+        ],
+        "daily_special": {
+          "title": "龙王陈酿",
+          "price": 30,
+          "content": "酒窖最深处只存三桶。老巴从不主动拿出来，除非你先把旧账结清。"
+        },
+        "rules": [
+          {
+            "title": "赊账规则",
+            "content": "赊账要在杯垫上签名，利息是每天一个离谱的故事。故事不好笑，利息翻倍。"
+          },
+          {
+            "title": "撒谎惩罚",
+            "content": "被老巴识破一次撒谎，罚一杯铁锈钉子酒，并在账本上记仇一格。赖账可以商量，撒谎不行。"
+          }
+        ],
+        "memories": [],
+        "ledger_tail": [],
+        "greeting_hint": "第一次见，按生客招呼，但记住他的名字。",
+        "storage": {
+          "ledger_and_lore": "seekdb",
+          "episodic_memory": "powercontext",
+          "scope_id": "scp_5bch0s5erkknmj78rspm3aaezc"
+        }
+      },
+      "reply": "火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。",
+      "state_line": "—— 老巴的账本：第1次照面 · 欠账 8 币 · 仇怨 0 格 · 本回合：赊账（赊下火焰威士忌（8 币）） · 记忆已写入 PowerContext（scp_5bch0s5e…）"
+    },
+    {
+      "message": "我昨天说的是下周还，你可别记错了。",
+      "recall": {
+        "player": {
+          "player_id": "demo_alice",
+          "visits": 1,
+          "debt": 8,
+          "grudge": 0,
+          "last_seen": "2026-10-31T12:23:08",
+          "epoch": 0
+        },
+        "lore": [
+          {
+            "title": "龙王陈酿",
+            "category": "drink",
+            "price": 30,
+            "content": "酒窖最深处只存三桶。老巴从不主动拿出来，除非你先把旧账结清。"
+          },
+          {
+            "title": "酒杯编号",
+            "category": "rumor",
+            "price": 0,
+            "content": "每个常客都有专属酒杯，杯底刻着他们第一次欠账的日期。老巴说那是最诚实的族谱。"
+          }
+        ],
+        "daily_special": {
+          "title": "爆炸蘑菇汤",
+          "price": 6,
+          "content": "端上来时还在冒泡，喝之前要签免责声明。上周有个矮人签了，现在他的胡子长在眉毛上。"
+        },
+        "rules": [
+          {
+            "title": "赊账规则",
+            "content": "赊账要在杯垫上签名，利息是每天一个离谱的故事。故事不好笑，利息翻倍。"
+          },
+          {
+            "title": "撒谎惩罚",
+            "content": "被老巴识破一次撒谎，罚一杯铁锈钉子酒，并在账本上记仇一格。赖账可以商量，撒谎不行。"
+          }
+        ],
+        "memories": [
+          {
+            "text": "记忆酒馆·第1次照面｜玩家 demo_alice 说：“老巴，来杯火焰威士忌，先记我账上，明天还你。”｜老巴回：“火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。”｜判定：赊账（赊下火焰威士忌（8 币））｜回合变化：欠账+8，仇怨+0｜当前欠账 8 币，仇怨 0 格。",
+            "kind": "episodic",
+            "score": 0.01639344262295082,
+            "created_at": null
+          }
+        ],
+        "ledger_tail": [
+          {
+            "ts": "2026-10-31T12:23:08",
+            "message": "老巴，来杯火焰威士忌，先记我账上，明天还你。",
+            "reply": "火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。",
+            "intent": "credit",
+            "delta_debt": 8,
+            "delta_grudge": 0
+          }
+        ],
+        "greeting_hint": "先提欠账和上次的借口，再招呼他坐下。",
+        "storage": {
+          "ledger_and_lore": "seekdb",
+          "episodic_memory": "powercontext",
+          "scope_id": "scp_5bch0s5erkknmj78rspm3aaezc"
+        }
+      },
+      "reply": "你昨天说的是‘明天还’，今天又改口下周？我左眼不眨，不代表它瞎。这 8 币我记下了，仇也记一格。",
+      "state_line": "—— 老巴的账本：第2次照面 · 欠账 8 币 · 仇怨 1 格 · 本回合：撒谎（被假眼识破，记仇一格） · 记忆已写入 PowerContext（scp_5bch0s5e…）"
+    }
+  ],
+  "state_after": {
+    "player": {
+      "player_id": "demo_alice",
+      "epoch": 0,
+      "pc_scope_id": "scp_5bch0s5erkknmj78rspm3aaezc",
+      "visits": 2,
+      "debt": 8,
+      "grudge": 1,
+      "last_seen": "2026-10-31T12:23:08",
+      "memo": "被假眼识破，记仇一格"
+    },
+    "recent_turns": [
+      {
+        "ts": "2026-10-31T12:23:08",
+        "message": "我昨天说的是下周还，你可别记错了。",
+        "reply": "你昨天说的是‘明天还’，今天又改口下周？我左眼不眨，不代表它瞎。这 8 币我记下了，仇也记一格。",
+        "intent": "lie",
+        "delta_debt": 0,
+        "delta_grudge": 1
+      },
+      {
+        "ts": "2026-10-31T12:23:08",
+        "message": "老巴，来杯火焰威士忌，先记我账上，明天还你。",
+        "reply": "火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。",
+        "intent": "credit",
+        "delta_debt": 8,
+        "delta_grudge": 0
+      }
+    ],
+    "memories": [
+      {
+        "text": "记忆酒馆·第1次照面｜玩家 demo_alice 说：“老巴，来杯火焰威士忌，先记我账上，明天还你。”｜老巴回：“火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。”｜判定：赊账（赊下火焰威士忌（8 币））｜回合变化：欠账+8，仇怨+0｜当前欠账 8 币，仇怨 0 格。",
+        "kind": "episodic",
+        "score": 0.01639344262295082,
+        "created_at": null
+      },
+      {
+        "text": "记忆酒馆·第2次照面｜玩家 demo_alice 说：“我昨天说的是下周还，你可别记错了。”｜老巴回：“你昨天说的是‘明天还’，今天又改口下周？我左眼不眨，不代表它瞎。这 8 币我记下了，仇也记一格。”｜判定：撒谎（被假眼识破，记仇一格）｜回合变化：欠账+0，仇怨+1｜当前欠账 8 币，仇怨 1 格。",
+        "kind": "episodic",
+        "score": 0.016129032258064516,
+        "created_at": null
+      }
+    ]
+  }
+}

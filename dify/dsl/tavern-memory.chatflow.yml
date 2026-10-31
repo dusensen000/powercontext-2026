@@ -1,0 +1,326 @@
+app:
+  description: 记忆酒馆：一个会记住你赊账、撒谎和道歉的酒馆老板。seekdb 存账本与素材，PowerContext 存跨会话记忆。
+  icon: 🍺
+  icon_background: '#FEF3C7'
+  mode: advanced-chat
+  name: 记忆酒馆：会记仇的老巴
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.3.1
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - description: 记忆酒馆后端地址。Dify 跑在 Docker 中时用 host.docker.internal 访问宿主机；后端与 Dify 同容器网络时改成服务名。
+    id: 2c9f1a54-7c1e-4b0a-9d2f-5c1d8e3b7a61
+    name: TAVERN_API
+    selector:
+    - env
+    - TAVERN_API
+    value: http://host.docker.internal:8770
+    value_type: string
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: |
+      欢迎来到记忆酒馆。
+
+      报上你的名字（玩家 ID），老巴会记住你——以及你欠的每一枚硬币。
+
+      第一次来，可以试试：「老巴，来杯火焰威士忌，先记我账上，明天还你。」
+      想看点旧账，就在新的对话里用同一个玩家 ID 再进来。
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 老巴，来杯火焰威士忌，先记我账上，明天还你。
+    - 跟我说说地下室的龙。
+    - 对不起，上次是我不对，我这就还钱。
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: http-request
+      id: start-to-recall
+      source: start_node
+      sourceHandle: source
+      target: recall_node
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: llm
+      id: recall-to-llm
+      source: recall_node
+      sourceHandle: source
+      target: llm_node
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: http-request
+      id: llm-to-remember
+      source: llm_node
+      sourceHandle: source
+      target: remember_node
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: answer
+      id: remember-to-answer
+      source: remember_node
+      sourceHandle: source
+      target: answer_node
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: 玩家 ID 用来跨会话认出同一个人。
+        selected: false
+        title: Start
+        type: start
+        variables:
+        - label: 你的名字（玩家 ID，例如 alice）
+          max_length: 48
+          options: []
+          required: true
+          type: text-input
+          variable: player_id
+      height: 90
+      id: start_node
+      position:
+        x: 40
+        y: 300
+      positionAbsolute:
+        x: 40
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: player_id
+            type: text
+            value: '{{#start_node.player_id#}}'
+          - key: message
+            type: text
+            value: '{{#sys.query#}}'
+          type: x-www-form-urlencoded
+        desc: seekdb 读取素材与账本，PowerContext 检索该玩家以前说过的话。
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          enabled: false
+          exponential_backoff:
+            enabled: false
+            max_interval: 10000
+            multiplier: 2
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 60
+          write: 60
+        title: 回忆旧账（seekdb + PowerContext）
+        type: http-request
+        url: '{{#env.TAVERN_API#}}/recall'
+      height: 120
+      id: recall_node
+      position:
+        x: 360
+        y: 300
+      positionAbsolute:
+        x: 360
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 老巴根据账本和旧记忆说话。
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 512
+            temperature: 0.85
+            top_p: 0.9
+          mode: chat
+          name: gpt-4o-mini
+          provider: langgenius/openai/openai
+        prompt_template:
+        - role: system
+          text: |
+            你是“老巴”，记忆酒馆的老板。你的左眼是假的，右眼很毒；你记得每个赖账的人，也记得每一句道歉。
+            你说话像一位见多识广、嘴硬心软的酒馆老板：短句、有画面、偶尔嘲讽，但不粗暴。每次回复不超过 120 个汉字。
+
+            【这一回合你看到的账本与记忆】（来自 seekdb 与 PowerContext 的 JSON）
+            {{#recall_node.body#}}
+
+            【你必须遵守】
+            1. 先看 player.debt：如果大于 0，必须说出具体欠账数额，并点出上次的借口或旧事。
+            2. 如果 player.grudge 大于 0，必须翻旧账，语气不爽；grudge 越高越刻薄，但不要人身攻击。
+            3. memories 是这位客人以前说过的话和你当时的回答。只要它非空，就要像真的记得一样自然引用至少一条；ledger_tail 是账本里最近两笔记录，也可以顺手提一句。
+            4. 客人问到酒或传闻时，从 lore / daily_special 里挑一条讲，不要编造数据里没有的店规或价格。
+            5. 客人赊账、撒谎、偷东西、还钱或道歉时，可以按店规数落或原谅，但不要自己计算余额——系统会结算。
+            6. 不输出 JSON、不解释系统、不写“根据记忆”之类的旁白；只写老巴的动作与台词。
+            7. 不要在回复末尾汇总欠账数字，系统会另外附上账本状态。
+        selected: false
+        title: 老巴（记忆驱动）
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: llm_node
+      position:
+        x: 680
+        y: 300
+      positionAbsolute:
+        x: 680
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: player_id
+            type: text
+            value: '{{#start_node.player_id#}}'
+          - key: message
+            type: text
+            value: '{{#sys.query#}}'
+          - key: reply
+            type: text
+            value: '{{#llm_node.text#}}'
+          type: x-www-form-urlencoded
+        desc: 规则结算写回 seekdb，并把这一回合存进 PowerContext。
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          enabled: true
+          exponential_backoff:
+            enabled: true
+            max_interval: 10000
+            multiplier: 2
+          max_retries: 2
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 60
+          write: 60
+        title: 记账与存忆（seekdb + PowerContext）
+        type: http-request
+        url: '{{#env.TAVERN_API#}}/remember'
+      height: 120
+      id: remember_node
+      position:
+        x: 1000
+        y: 300
+      positionAbsolute:
+        x: 1000
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: |
+          {{#llm_node.text#}}
+
+          {{#remember_node.body#}}
+        desc: 老巴的台词 + 账本状态。
+        selected: false
+        title: Answer
+        type: answer
+        variables: []
+      height: 120
+      id: answer_node
+      position:
+        x: 1320
+        y: 300
+      positionAbsolute:
+        x: 1320
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.8

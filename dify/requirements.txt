@@ -1,0 +1,10 @@
+# Dify backend + evidence tools (Python 3.12, Linux)
+pylibseekdb==1.4.0; sys_platform == "linux"
+PyMySQL>=1.1
+fastapi>=0.115
+uvicorn>=0.30
+python-multipart>=0.0.9
+
+# Memory service used by /recall and /remember (run as a local HTTP server)
+powercontext[server]==1.4.1
+typer>=0.12
