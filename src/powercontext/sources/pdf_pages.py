@@ -18,7 +18,10 @@ from __future__ import annotations
 
 import hashlib
 import io
+import math
 import re
+from collections import Counter
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 from urllib.parse import quote, unquote
 
@@ -34,16 +37,89 @@ if TYPE_CHECKING:
 
 PDF_PAGE_SOURCE_NAME = "pdf-page"
 _TOKEN = re.compile(r"[A-Za-z]+|\d+")
-_SEARCH_STOPWORDS = frozenset(
+_PERCENT_NUMBER = re.compile(r"(\d+)\s*%")
+_STOPWORDS = frozenset(
     """
     about above after again against all also among and any are because been before being below
-    between both but can could did does doing down during each few for from further had has have
-    having her here hers herself him himself his how into its itself just mainly more most only
-    other our ours ourselves over own same she should some such than that the their theirs them
-    themselves then there these they this those through under until very was were what when where
-    which while who whom why will with would year years reported report
+    between both but can could did does doing done down during each few for from further had has
+    have having her here hers herself him himself his how into its itself just mainly more most
+    only other our ours ourselves over own same she should some such than that the their theirs
+    them themselves then there these they this those through under until very was were what when
+    where which while who whom why will with would year years reported report
+    answer question questions respond response give given show shown within detail details assume
+    assuming perspective analyst analysts use using calculate calculation define definition
+    exact quote kindly please explain explanation state stated mention provide format output number
+    numbers usd dollar dollars million millions billion billions percentage percent company like
+    useful metric profile improving reasonably healthy relevant outlined explicitly quantity
+    much many not able
     """.split()
 )
+# Morphological bridges between the wording of a question and that of a filing.
+_SYNONYMS = {
+    "battl": ("litigation", "proceedings", "lawsuit"),
+    "litigat": ("proceedings",),
+    "retain": ("retention",),
+    "cycl": ("cyclical",),
+    "acquisit": ("acquire",),
+    "primar": ("major", "principal"),
+    "major": ("primary",),
+    "restructur": ("impairment", "charges"),
+    "drov": ("driven", "drive", "driving"),
+}
+# Question intents that no single content word carries.
+_EXPANSIONS = {
+    "geograph": (
+        "geographic regions countries territories united states europe asia africa latin america "
+        "north america middle east canada china japan international worldwide emea apac",
+    ),
+    "leg": ("litigation proceedings lawsuits claims contingencies investigations",),
+    "cycl": ("seasonality cyclical",),
+}
+# Financial-statement intents and the page titles that answer them.
+_CONCEPTS = (
+    (
+        ("balance sheet", "quick ratio", "current ratio", "liquidity", "liabilit", "asset"),
+        ("balance sheet", "balance sheets"),
+    ),
+    (
+        (
+            "income statement",
+            "statements of income",
+            "statement of income",
+            "statement of operations",
+            "statements of operations",
+            "gross margin",
+            "operating margin",
+            "margin",
+            "tax rate",
+            "profit",
+            "earnings",
+            "ebitda",
+            "income",
+        ),
+        ("statement of income", "statements of income", "statement of operations", "statements of operations"),
+    ),
+    (
+        (
+            "cash flow",
+            "cash flows",
+            "operating activities",
+            "investing",
+            "financing",
+            "ebitda",
+            "depreciation",
+            "amortization",
+        ),
+        ("statement of cash flows", "statements of cash flows"),
+    ),
+)
+_HEADING_WEIGHT = 3.0
+_BIGRAM_WEIGHT = 0.6
+_STATEMENT_WEIGHT = 10.0
+_SYNONYM_WEIGHT = 1.0
+_HEADING_MAX_TF = 5
+_BM25_K1 = 1.2
+_BM25_B = 0.75
 
 
 class PDFDocumentInput(BaseModel):
@@ -160,12 +236,34 @@ PDF_PAGE_SOURCE_DEFINITION = AdapterSourceDefinition(
 )
 
 
+@dataclass
+class _PageRecord:
+    """One stored page ready for local evidence ranking."""
+
+    document_id: str
+    page_number: int
+    text: str
+    citation: MemoryCitation
+    stems: list[str] = field(default_factory=list)
+    tf: Counter = field(default_factory=Counter)
+    heading: frozenset[str] = frozenset()
+    pairs: frozenset[tuple[str, str]] = frozenset()
+
+    @property
+    def key(self) -> tuple[str, int]:
+        return (self.document_id, self.page_number)
+
+
 async def search_pdf_pages(
     memory: Any,
     question: str,
     limit: int = 10,
 ) -> tuple[MemoryCitation, ...]:
-    """Return up to ``limit`` distinct evidence pages as exact citations."""
+    """Return up to ``limit`` distinct evidence pages as exact citations.
+
+    The page set is ranked locally on the exact stored entry texts so that
+    evidence pages are ordered by relevance instead of by retrieval order.
+    """
 
     from powercontext.builtin.artifacts.memory.models import MemoryCitation
     from powercontext.builtin.runtime.models import GetMemoryEntryRequest, SearchMemoryRequest
@@ -174,6 +272,11 @@ async def search_pdf_pages(
         raise ValueError("limit must be a positive integer")  # noqa: TRY003
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a non-empty string")  # noqa: TRY003
+
+    records = await _load_page_records(memory)
+    ranked = _rank_pages(records, question, limit) if records else ()
+    if ranked:
+        return ranked
 
     query_limit = min(max(limit * 4, 40), 160)
     fused: dict[tuple[str, int], float] = {}
@@ -197,9 +300,239 @@ async def search_pdf_pages(
     return tuple(citations[key] for key in ordered[:limit])
 
 
+async def _load_page_records(memory: Any) -> tuple[_PageRecord, ...]:
+    """Read every stored page entry without issuing a search per question."""
+
+    if not hasattr(memory, "list"):
+        return ()
+    page = await memory.list()
+    records: dict[tuple[str, int], _PageRecord] = {}
+    for record in page.entries:
+        for reference in record.entry.sources:
+            if reference.source_type != PDF_PAGE_SOURCE_NAME:
+                continue
+            parsed = _parse_page_source_id(reference.source_id)
+            if parsed is None or parsed in records:
+                continue
+            document_id, page_number = parsed
+            text = record.entry.text
+            prefix = f"{document_id}\n"
+            if text.startswith(prefix):
+                text = text[len(prefix) :]
+            elif text == document_id:
+                text = ""
+            records[parsed] = _PageRecord(
+                document_id=document_id,
+                page_number=page_number,
+                text=text.lower(),
+                citation=record.citation,
+            )
+            break
+    return tuple(records.values())
+
+
+def _prepare_page(record: _PageRecord) -> None:
+    if record.stems or not record.text:
+        return
+    record.stems = [_stem(token) for token in _TOKEN.findall(record.text)]
+    record.tf = Counter(record.stems)
+    headings: set[str] = set()
+    for line in record.text.splitlines():
+        words = _TOKEN.findall(line)
+        if not 1 <= len(words) <= 10 or "contents" in words:
+            continue
+        headings.update(_stem(word) for word in words)
+    record.heading = frozenset(headings)
+    record.pairs = frozenset(zip(record.stems, record.stems[1:]))
+
+
+def _rank_pages(
+    records: tuple[_PageRecord, ...],
+    question: str,
+    limit: int,
+) -> tuple[MemoryCitation, ...]:
+    documents = dict.fromkeys(record.document_id for record in records)
+    target, matched = _select_document(question, tuple(documents))
+    pool = [record for record in records if record.document_id == target] if target is not None else list(records)
+    weights, pairs = _query_model(question)
+    if target is not None:
+        identity_stems = {_stem(token) for token in matched}
+        weights = {term: weight for term, weight in weights.items() if term not in identity_stems}
+        pairs = tuple((left, right) for left, right in pairs if left in weights and right in weights)
+    if not pool or not weights:
+        return ()
+
+    for record in pool:
+        _prepare_page(record)
+    idf, _ = _idf_map(pool, tuple(weights))
+    avgdl = sum(len(record.stems) for record in pool) / len(pool) or 1.0
+    concepts = tuple(
+        titles for triggers, titles in _CONCEPTS if any(trigger in question.lower() for trigger in triggers)
+    )
+
+    scores: dict[tuple[str, int], float] = {}
+    for record in pool:
+        length = len(record.stems)
+        score = 0.0
+        for term, weight in weights.items():
+            frequency = record.tf.get(term, 0)
+            if frequency:
+                score += (
+                    weight
+                    * idf[term]
+                    * frequency
+                    * (_BM25_K1 + 1)
+                    / (frequency + _BM25_K1 * (1 - _BM25_B + _BM25_B * length / avgdl))
+                )
+        for term, weight in weights.items():
+            if (
+                term in record.heading
+                and record.tf.get(term, 0) < _HEADING_MAX_TF
+            ):
+                score += weight * _HEADING_WEIGHT * idf[term]
+        for left, right in pairs:
+            if (left, right) in record.pairs:
+                score += _BIGRAM_WEIGHT * (idf.get(left, 0.0) + idf.get(right, 0.0))
+        for titles in concepts:
+            if any(title in record.text for title in titles):
+                score += _STATEMENT_WEIGHT
+        scores[record.key] = score
+
+    ordered = sorted(pool, key=lambda record: (-scores[record.key], record.document_id, record.page_number))
+    return tuple(record.citation for record in ordered[:limit])
+
+
+def _idf_map(pages: list[_PageRecord], terms: tuple[str, ...]) -> tuple[dict[str, float], Counter]:
+    total = len(pages)
+    document_frequency: Counter = Counter()
+    for record in pages:
+        seen = set(record.stems)
+        for term in terms:
+            if term in seen:
+                document_frequency[term] += 1
+    idf = {
+        term: math.log(1 + (total - document_frequency[term] + 0.5) / (document_frequency[term] + 0.5))
+        for term in terms
+    }
+    return idf, document_frequency
+
+
+def _query_model(question: str) -> tuple[dict[str, float], tuple[tuple[str, str], ...]]:
+    percent_numbers = set(_PERCENT_NUMBER.findall(question))
+    base: list[str] = []
+    for token in _question_tokens(question):
+        if token.isdigit():
+            if len(token) < 4 and token not in percent_numbers:
+                continue
+        elif len(token) < 3 or token in _STOPWORDS:
+            continue
+        term = _stem(token)
+        if term not in base:
+            base.append(term)
+    weights: dict[str, float] = dict.fromkeys(base, 1.0)
+    variants: dict[str, list[str]] = {}
+    for term in base:
+        expanded = [_stem(item) for item in _SYNONYMS.get(term, ())]
+        expanded += [_stem(item) for phrase in _EXPANSIONS.get(term, ()) for item in phrase.split()]
+        variants[term] = expanded
+        for item in expanded:
+            weights.setdefault(item, _SYNONYM_WEIGHT)
+    pairs: list[tuple[str, str]] = []
+    for left, right in zip(base, base[1:]):
+        for left_variant in (left, *variants[left]):
+            for right_variant in (right, *variants[right]):
+                pairs.append((left_variant, right_variant))
+    return weights, tuple(pairs)
+
+
+def _question_tokens(question: str) -> list[str]:
+    return [token.lower() for token in _TOKEN.findall(question)]
+
+
+def _select_document(question: str, documents: tuple[str, ...]) -> tuple[str | None, set[str]]:
+    scored = sorted(
+        ((document, *_identity(question, document)) for document in documents),
+        key=lambda item: (-item[1], item[0]),
+    )
+    if not scored:
+        return None, set()
+    best_document, best_score, matched = scored[0]
+    runner_up = scored[1][1] if len(scored) > 1 else 0.0
+    if best_score >= 1.0 and best_score - runner_up >= 1.0:
+        return best_document, matched
+    return None, set()
+
+
+def _identity(question: str, document_id: str) -> tuple[float, set[str]]:
+    normalized = re.sub(r"[^a-z0-9]+", "", document_id.lower())
+    score = 0.0
+    matched: set[str] = set()
+    tokens = _question_tokens(question)
+    for token in tokens:
+        if token.isdigit():
+            if len(token) == 4 and token in normalized:
+                score += 0.5
+                matched.add(token)
+        elif len(token) >= 3 and token not in _STOPWORDS and token in normalized:
+            score += 1.0
+            matched.add(token)
+    for left, right in zip(tokens, tokens[1:]):
+        if left.isalpha() and right.isalpha():
+            joined = left + right
+            if len(joined) >= 6 and joined in normalized:
+                score += 2.0
+    return score, matched
+
+
+def _stem(word: str) -> str:
+    if not word.isalpha() or len(word) <= 3:
+        return word
+    value = word
+    for _ in range(5):
+        previous = value
+        length = len(value)
+        if value.endswith("ies") and length > 4:
+            value = value[:-3] + "y"
+        elif value.endswith("sses"):
+            value = value[:-2]
+        elif value.endswith("es") and length > 4:
+            value = value[:-2]
+        elif value.endswith("s") and not value.endswith("ss") and length > 3:
+            value = value[:-1]
+        elif value.endswith("ing") and length > 5:
+            value = value[:-3]
+        elif value.endswith("ed") and length > 4:
+            value = value[:-2]
+        elif value.endswith("ions") and length > 5:
+            value = value[:-4]
+        elif value.endswith("ion") and length > 4:
+            value = value[:-3]
+        elif value.endswith("ity") and length > 5:
+            value = value[:-3]
+        elif value.endswith("ical") and length > 6:
+            value = value[:-4]
+        elif value.endswith("ic") and length > 5:
+            value = value[:-2]
+        elif value.endswith("al") and length > 4:
+            value = value[:-2]
+        elif value.endswith("ly") and length > 4:
+            value = value[:-2]
+        elif value.endswith("ment") and length > 6:
+            value = value[:-4]
+        elif value.endswith("y") and length > 3:
+            value = value[:-1] + "i"
+        elif value.endswith("i") and length > 4:
+            value = value[:-1]
+        elif value.endswith("e") and length > 4:
+            value = value[:-1]
+        if value == previous:
+            break
+    return value
+
+
 def _search_queries(question: str) -> tuple[str, ...]:
-    tokens = [token.lower() for token in _TOKEN.findall(question)]
-    keywords = [token for token in tokens if len(token) >= 3 and token not in _SEARCH_STOPWORDS]
+    tokens = _question_tokens(question)
+    keywords = [token for token in tokens if len(token) >= 3 and token not in _STOPWORDS]
     numbers = [token for token in tokens if token.isdigit()]
     queries: list[str] = [question.strip()]
     if keywords:
