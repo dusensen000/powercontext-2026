@@ -319,10 +319,20 @@ class PreparedContextBuilder:
         current_scope_id: str | None,
         memory_candidates: Sequence[PreparedMemoryCandidates],
     ) -> PreparedContextBuild:
-        """Select literal query-relevant spans from recalled Memory entries."""
+        """Select literal query-relevant spans from recalled Memory entries.
+
+        Spans are ranked by the distinct query terms they cover, then by lexical
+        score, so repeated terms from one sentence cannot crowd out evidence from
+        other entries. Consecutive spans of the same entry are coalesced into one
+        fragment when the gap between them is short or itself carries query terms:
+        that keeps a single citation for one contiguous evidence region instead of
+        paying citation overhead per sentence.
+        """
 
         query_terms = _evidence_terms(request.query)
-        ranked: list[tuple[float, int, int, int, MemoryEntryAddress, int, int, str]] = []
+        query_stems = frozenset(_evidence_stem(term) for term in query_terms)
+        wanted = frozenset(query_terms)
+        spans: list[_EvidenceSpan] = []
         seen: set[tuple[str, str, str]] = set()
         for group_index, candidates in enumerate(memory_candidates):
             scope_id = candidates.scope_id or current_scope_id or ""
@@ -342,32 +352,106 @@ class PreparedContextBuilder:
                 )
                 for span_index, (start, end) in enumerate(_evidence_spans(hit.text)):
                     text = hit.text[start:end]
-                    score = _evidence_score(query_terms, text)
-                    ranked.append((-score, group_index, hit_index, span_index, address, start, end, text))
-        ranked.sort(key=lambda entry: entry[:4])
+                    matched = wanted & frozenset(_EVIDENCE_TOKEN.findall(text.lower()))
+                    score = _evidence_score(query_terms, text) + 0.5 * _evidence_stem_score(
+                        query_terms, text
+                    )
+                    spans.append(
+                        _EvidenceSpan(
+                            address=address,
+                            group_index=group_index,
+                            hit_index=hit_index,
+                            span_index=span_index,
+                            start=start,
+                            end=end,
+                            entry_text=hit.text,
+                            score=score,
+                            matched=matched,
+                        )
+                    )
 
-        items: list[dict[str, object]] = []
-        fragments: list[ContextFragment] = []
-        for _, _, _, _, address, start, end, text in ranked:
-            fragment = ContextFragment(address=address, start=start, end=end, text=text)
-            item: dict[str, object] = {
-                "citation": {
-                    "scope_id": address.memory.scope_id,
-                    "memory_ref": address.memory.artifact.model_dump(mode="json"),
-                    "entry_id": address.entry_id,
-                    "entry_version_id": address.entry_version_id,
-                },
-                "content": text,
-                "start": start,
-                "end": end,
-            }
-            if len(_render_evidence((*items, item)).encode("utf-8")) > request.max_bytes:
-                continue
-            items.append(item)
-            fragments.append(fragment)
-        if not fragments:
+        selected: list[_SelectedEvidence] = []
+
+        def fits(candidate: Sequence[_SelectedEvidence]) -> bool:
+            rendered = tuple(_evidence_item(choice) for choice in candidate)
+            return len(_render_evidence(rendered).encode("utf-8")) <= request.max_bytes
+
+        def select(span: _EvidenceSpan) -> None:
+            mergeable: list[tuple[int, _SelectedEvidence]] = []
+            for position, choice in enumerate(selected):
+                if choice.address != span.address:
+                    continue
+                low, high = sorted(((span.start, span.end), (choice.start, choice.end)))
+                gap = span.entry_text[low[1] : high[0]]
+                if gap.strip() and len(gap) > _EVIDENCE_MAX_MERGE_GAP:
+                    continue
+                if (
+                    gap.strip()
+                    and len(gap) > _EVIDENCE_SMALL_MERGE_GAP
+                    and not _evidence_gap_relevant(gap, wanted, query_stems)
+                ):
+                    continue
+                merged = replace(
+                    choice,
+                    start=min(span.start, choice.start),
+                    end=max(span.end, choice.end),
+                )
+                mergeable.append((position, merged))
+            mergeable.sort(key=lambda option: option[1].end - option[1].start)
+            for position, merged in mergeable:
+                candidate = selected[:position] + [merged] + selected[position + 1 :]
+                if fits(candidate):
+                    selected[:] = candidate
+                    return
+            fresh = _SelectedEvidence(
+                address=span.address,
+                start=span.start,
+                end=span.end,
+                entry_text=span.entry_text,
+            )
+            if fits([*selected, fresh]):
+                selected.append(fresh)
+
+        pending = list(spans)
+        covered: set[str] = set()
+        while pending:
+            position = max(
+                range(len(pending)),
+                key=lambda index: (
+                    len(pending[index].matched - covered),
+                    pending[index].score,
+                    -pending[index].group_index,
+                    -pending[index].hit_index,
+                    -pending[index].span_index,
+                ),
+            )
+            span = pending.pop(position)
+            if not span.matched - covered:
+                pending.append(span)
+                break
+            # Terms count as covered once chosen for delivery, even if the span
+            # itself does not fit, so the next pick widens rather than repeats them.
+            covered.update(span.matched)
+            select(span)
+        pending.sort(
+            key=lambda span: (span.score, -span.group_index, -span.hit_index, -span.span_index),
+            reverse=True,
+        )
+        for span in pending:
+            select(span)
+
+        if not selected:
             return PreparedContextBuild(context=self.empty(), origins=())
-        content = _render_evidence(tuple(items))
+        fragments = tuple(
+            ContextFragment(
+                address=choice.address,
+                start=choice.start,
+                end=choice.end,
+                text=choice.entry_text[choice.start : choice.end],
+            )
+            for choice in selected
+        )
+        content = _render_evidence(tuple(_evidence_item(choice) for choice in selected))
         return PreparedContextBuild(
             context=PreparedContext(
                 status="ready",
@@ -375,7 +459,7 @@ class PreparedContextBuilder:
                 content_bytes=len(content.encode("utf-8")),
             ),
             origins=tuple(fragment.address for fragment in fragments),
-            fragments=tuple(fragments),
+            fragments=fragments,
         )
 
     def _select_entries(
@@ -861,6 +945,47 @@ _EVIDENCE_STOPWORDS = frozenset(
     }
 )
 _EVIDENCE_MAX_SPAN = 400
+_EVIDENCE_SMALL_MERGE_GAP = 40
+_EVIDENCE_MAX_MERGE_GAP = 1200
+
+
+@dataclass(frozen=True)
+class _EvidenceSpan:
+    """One literal sentence-range candidate scored against the query."""
+
+    address: MemoryEntryAddress
+    group_index: int
+    hit_index: int
+    span_index: int
+    start: int
+    end: int
+    entry_text: str
+    score: float
+    matched: frozenset[str]
+
+
+@dataclass(frozen=True)
+class _SelectedEvidence:
+    """One delivered fragment: a contiguous range of a single Memory entry."""
+
+    address: MemoryEntryAddress
+    start: int
+    end: int
+    entry_text: str
+
+
+def _evidence_item(choice: _SelectedEvidence) -> dict[str, object]:
+    return {
+        "citation": {
+            "scope_id": choice.address.memory.scope_id,
+            "memory_ref": choice.address.memory.artifact.model_dump(mode="json"),
+            "entry_id": choice.address.entry_id,
+            "entry_version_id": choice.address.entry_version_id,
+        },
+        "content": choice.entry_text[choice.start : choice.end],
+        "start": choice.start,
+        "end": choice.end,
+    }
 
 
 def _evidence_terms(text: str) -> tuple[str, ...]:
@@ -884,6 +1009,38 @@ def _evidence_score(terms: Sequence[str], text: str) -> float:
         return 0.0
     frequency = sum(tokens.count(term) for term in terms)
     return matched + 2.0 * (matched / len(terms)) + 0.1 * min(frequency, 10)
+
+
+def _evidence_stem(token: str) -> str:
+    for suffix in ("ically", "ations", "ation", "ings", "ing", "ies", "ied", "ed", "es", "s", "ly"):
+        if token.endswith(suffix) and len(token) - len(suffix) >= 3:
+            return token[: -len(suffix)] + ("y" if suffix in {"ies", "ied"} else "")
+    return token
+
+
+def _evidence_stem_score(terms: Sequence[str], text: str) -> float:
+    """Score stemmed term overlap so inflection does not hide matching evidence."""
+
+    if not terms:
+        return 0.0
+    tokens = [_evidence_stem(token) for token in _EVIDENCE_TOKEN.findall(text.lower())]
+    if not tokens:
+        return 0.0
+    present = set(tokens)
+    matched = sum(1 for term in terms if term in present)
+    if matched == 0:
+        return 0.0
+    frequency = sum(tokens.count(term) for term in terms)
+    return matched + 2.0 * (matched / len(terms)) + 0.1 * min(frequency, 10)
+
+
+def _evidence_gap_relevant(gap: str, wanted: frozenset[str], stems: frozenset[str]) -> bool:
+    """Report whether the text between two spans itself carries query evidence."""
+
+    tokens = _EVIDENCE_TOKEN.findall(gap.lower())
+    if wanted.intersection(tokens):
+        return True
+    return any(_evidence_stem(token) in stems for token in tokens)
 
 
 def _evidence_spans(text: str) -> tuple[tuple[int, int], ...]:
