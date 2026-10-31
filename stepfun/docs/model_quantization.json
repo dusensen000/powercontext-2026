@@ -1,0 +1,15 @@
+{
+  "method": "onnxruntime.quantization.quantize_dynamic(weight_type=QInt8, per_channel=False, MatMulConstBOnly=True)",
+  "source": {
+    "path": "app\\public\\models\\minilm-fp32\\onnx\\model.onnx",
+    "bytes": 90387606,
+    "sha256": "759c3cd2b7fe7e93933ad23c4c9181b7396442a2ed746ec7c1d46192c469c46e"
+  },
+  "quantized": {
+    "path": "app\\public\\models\\minilm-int8\\onnx\\model_quantized.onnx",
+    "bytes": 22869072,
+    "sha256": "e13dcd11b0e1c4bf887ee1c80b203529b6eaecf844af14d8605e194e80d6021a"
+  },
+  "compression_ratio": 3.952,
+  "saved_percent": 74.7
+}

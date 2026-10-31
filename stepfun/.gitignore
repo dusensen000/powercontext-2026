@@ -1,0 +1,5 @@
+node_modules/
+dist/
+app/public/models/
+*.log
+.DS_Store
