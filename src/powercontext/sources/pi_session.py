@@ -194,7 +194,7 @@ def _parse_archive(
         raise ValueError("Pi session archive must be strict UTF-8") from error
 
     rows: list[dict[str, Any]] = []
-    for line_number, line in enumerate(text.splitlines(), start=1):
+    for line_number, line in enumerate(text.split("\n"), start=1):
         if not line.strip():
             continue
         try:
