@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.db
+*.db-journal
+data/seekdb/
+.DS_Store
+
+# Qoder Sites 生成的发布预览描述文件（不是源码）
+*.qoder.site

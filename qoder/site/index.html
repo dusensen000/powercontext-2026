@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>接力棒 Relay · 把纪要变成可交接的任务台账</title>
+<meta name="description" content="2026 OceanBase 数据库大赛 Qoder 赛道作品：用 seekdb 混合检索做任务去重对账，用 PowerContext 承载交接上下文。">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap head-row">
+    <p class="brand">接力棒 <span>Relay</span></p>
+    <nav class="nav">
+      <a href="#problem">问题</a>
+      <a href="#chain">链路</a>
+      <a href="#seekdb">seekdb</a>
+      <a href="#powercontext">PowerContext</a>
+      <a href="#ui">界面</a>
+      <a href="#run">复现</a>
+    </nav>
+  </div>
+  <div class="wrap hero">
+    <p class="tag">2026 OceanBase 数据库大赛 · Qoder 赛道</p>
+    <h1>同一件事在三次周会里被说了三遍，<br>没人说得清现在到底是哪个状态。</h1>
+    <p class="lead">接力棒把会议纪要、聊天记录、待办抽成结构化条目，用 seekdb 判断「这条是不是上次那件事」，
+      用 PowerContext 把决定和约束留到下一次交接。产出一张能对超期、能对失联、能直接发给接手人的台账。</p>
+    <dl class="metrics">
+      <div><dt>23 → 14</dt><dd>三次纪要抽 23 条，去重后台账 14 条（合并 9 次）</dd></div>
+      <div><dt>3 / 3</dt><dd>截至基准日：超期 3 条，无人认领 3 条</dd></div>
+      <div><dt>0.28</dt><dd>实测校准后的去重阈值（余弦距离）</dd></div>
+      <div><dt>4 步</dt><dd>契约 → 交接 → 回执 → 结果，全部落库</dd></div>
+    </dl>
+    <p class="varnote">上面的数字来自 <code>evidence/03-demo-e2e.log</code> 那一次完整运行。抽取由 StepFun 完成，
+      条数每次会有小幅浮动（多一两条说法略有不同的小项），但「合并 / 新增」的判定和台账结构不变。</p>
+  </div>
+</header>
+
+<main>
+  <section id="problem" class="wrap">
+    <h2>解决什么</h2>
+    <div class="cols">
+      <article>
+        <h3>进度要反复确认</h3>
+        <p>「登录接口 P95 还没到 400ms」在启动会、周会、交接会被说了三次，措辞每次不一样。
+          人工对齐只能靠通读聊天记录，而且读一遍就会过时。</p>
+      </article>
+      <article>
+        <h3>交接全靠嘴</h3>
+        <p>人一调走，「旧 auth 接口不能下线，因为移动端 3.2 还在用」这类约束就留在历史消息里。
+          接手的人不知道有这条约束，一旦下线就是事故。</p>
+      </article>
+      <article>
+        <h3>超期和失联没人管</h3>
+        <p>任务散在纪要里，没有基准日，也就没人发现「原定 9 月 18 日联系 DBA」其实已经超期两周。</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="chain" class="band">
+    <div class="wrap">
+      <h2>核心链路</h2>
+      <ol class="chain">
+        <li><b>粘贴纪要</b><span>原始 Markdown 或聊天导出</span></li>
+        <li><b>StepFun 抽取</b><span>决定 / 行动项 / 风险 / 待确认，带负责人、截止日、状态</span></li>
+        <li><b>seekdb 混合检索</b><span>全文 + 向量 + 标量一次调用，RRF 召回候选，再复核余弦距离</span></li>
+        <li><b>合并入库</b><span>同一件事更新状态，不同事才新增</span></li>
+        <li><b>对账</b><span>按基准日算超期，按负责人算失联</span></li>
+        <li><b>PowerContext 交接</b><span>工作契约、Prepared Handoff、确认回执、任务结果</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="seekdb" class="wrap">
+    <h2>为什么这里必须是 seekdb</h2>
+    <p>判断「这条是不是上次那件事」，<b>只靠关键词会漏</b>，<b>只靠语义会错</b>。
+      同一个查询跑三种检索，实测结果如下（台账 14 条，见 <code>evidence/02-retrieval-on-ledger.log</code>）：</p>
+    <div class="compare">
+      <div>
+        <p class="k">只关键词 <code>连接池</code></p>
+        <ul><li>数据库连接池存在被打满风险</li></ul>
+        <p class="note">精确命中 1 条，但换个说法就找不到。</p>
+      </div>
+      <div>
+        <p class="k">只语义 <code>数据库压力太大怎么办</code></p>
+        <ul>
+          <li>数据库连接池存在被打满风险 <i>0.4080</i></li>
+          <li>登录接口性能问题 <i>0.5404</i></li>
+          <li>新旧接口token不一致风险 <i>0.5451</i></li>
+          <li>灰度发布策略 <i>0.5618</i></li>
+          <li>灰度配置误操作风险 <i>0.5724</i></li>
+        </ul>
+        <p class="note">原文没有「压力」也命中了，但带回了 4 条无关项。</p>
+      </div>
+      <div class="hl">
+        <p class="k">混合检索 <code>hybrid_search</code> + RRF</p>
+        <ul>
+          <li>数据库连接池存在被打满风险 <i>0.0328</i></li>
+          <li>登录接口性能问题 <i>0.0161</i></li>
+          <li>新旧接口token不一致风险 <i>0.0159</i></li>
+          <li>灰度发布策略 <i>0.0156</i></li>
+          <li>灰度配置误操作风险 <i>0.0154</i></li>
+        </ul>
+        <p class="note">一次调用三路融合；括号里是 RRF 融合分，只用于排序。</p>
+      </div>
+    </div>
+
+    <h3>去重阈值是量出来的，不是猜的</h3>
+    <p>RRF 分不能当相似度用，所以流程是「混合检索召回候选 → 本地 bge 向量复核余弦距离」。
+      三份纪要跑下来，距离分布分成两簇，中间是空的：</p>
+    <table class="data">
+      <caption>同一次运行的真实判定（距离越小越相似，完整逐条输出见 <code>evidence/03-demo-e2e.log</code>）</caption>
+      <thead><tr><th>判定</th><th>条目对</th><th>余弦距离</th></tr></thead>
+      <tbody>
+        <tr class="yes"><td>同一件事</td><td>给出 20% 灰度回滚阈值建议 ↔ 20%灰度回滚阈值待确认</td><td>0.047</td></tr>
+        <tr class="yes"><td>同一件事</td><td>登录页改版设计稿已交付 ↔ 交付登录页改版设计稿</td><td>0.062</td></tr>
+        <tr class="yes"><td>同一件事</td><td>旧 auth 接口暂不下线 ↔ 旧接口不下线约束</td><td>0.073</td></tr>
+        <tr class="yes"><td>同一件事</td><td>灰度流量从 5% 扩大至 20% ↔ 灰度发布策略</td><td>0.129</td></tr>
+        <tr class="yes"><td>同一件事</td><td>登录接口改造方案评审通过 ↔ 登录接口性能问题</td><td>0.238</td></tr>
+        <tr class="no"><td>不同任务</td><td>交付登录页改版设计稿 ↔ 输出接口改造技术方案</td><td>0.289</td></tr>
+        <tr class="no"><td>不同任务</td><td>完成登录改造三项前置工作 ↔ 输出接口改造技术方案</td><td>0.312</td></tr>
+        <tr class="no"><td>不同任务</td><td>灰度配置误操作风险 ↔ 灰度发布策略</td><td>0.329</td></tr>
+        <tr class="no"><td>不同任务</td><td>新旧接口 token 不一致风险 ↔ 旧接口不下线约束</td><td>0.355</td></tr>
+        <tr class="no"><td>不同任务</td><td>是否支持短信验证码登录 ↔ 新旧接口 token 不一致风险</td><td>0.495</td></tr>
+      </tbody>
+    </table>
+    <p class="cutline">合并一簇最大 <b>0.238</b>，新增一簇最小 <b>0.289</b>，阈值取 <b>0.28</b> 正好落在中间。
+      校准阶段试过 0.45 和默认的 0.62：三份纪要会被压成个位数条目，整个项目塌成一条任务，超期和失联全部归零——
+      这是本项目里唯一一处「模型看起来在工作、其实全错」的地方。</p>
+
+    <h3>另外两个 seekdb 细节</h3>
+    <div class="cols two">
+      <article>
+        <p><b>namespace 与标量过滤</b><br>同一套库承载多项目：查询时带 <code>{"project": "Aurora"}</code>
+          与 <code>{"status": {"$in": [...]}}</code>，去重只在同项目、未完成的任务里比。</p>
+      </article>
+      <article>
+        <p><b>嵌入式跑在 WSL</b><br>seekdb 没有 Windows 原生包，用 <code>pyseekdb</code> 嵌入式实例；
+          数据目录放 WSL 文件系统，避开 <code>/mnt/c</code> 的文件锁。<code>SEEKDB_HOST</code> 一填即切 server 模式。</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="powercontext" class="band">
+    <div class="wrap">
+      <h2>为什么这里必须是 PowerContext</h2>
+      <p>台账解决「现在有哪些事」，解决不了「为什么这么定」。约束必须活得比单次会话久，
+        而且交接必须可确认——不能是「我口头交代过了」。</p>
+      <div class="flow">
+        <div class="step"><span>1</span><b>Source</b><p>三份纪要原文落库，条目可回溯到原文位置</p></div>
+        <div class="step"><span>2</span><b>Memory</b><p>决定与约束写成 atomic-memory，交接时自动召回</p></div>
+        <div class="step"><span>3</span><b>Work Contract</b><p>目标、在范围、排除项、完成标准、未确认问题：<code>position=44</code></p></div>
+        <div class="step"><span>4</span><b>Prepared Handoff</b><p>当前状态 + 下一步，逐条带证据引用：<code>position=45</code></p></div>
+        <div class="step"><span>5</span><b>确认回执</b><p>接手人自检（现场/能力/授权）后 accept，证据状态 <code>available</code></p></div>
+        <div class="step"><span>6</span><b>Task Outcome</b><p>本轮结果与剩余工作落库：<code>position=47</code></p></div>
+      </div>
+      <p class="note">三个 <code>position</code> 取自 <code>evidence/03-demo-e2e.log</code> 那次运行；
+        PowerContext 的位置在同一 Scope 内单调递增，每跑一轮演示都会往后走。</p>
+      <div class="recall">
+        <p class="k">交接时 PowerContext 召回的上下文（<code>/v1/context/prepare</code>，2036 字节，节选自 <code>evidence/04-powercontext-setup.log</code>）</p>
+        <blockquote>
+          旧接口不下线约束：因移动端3.2版本仍在使用旧auth接口，该接口暂不能下线<br>
+          登录接口P95性能目标：当前20%灰度下登录接口P95为520ms，距离400ms的目标仍有差距
+        </blockquote>
+        <p class="note">每条都带 <code>artifact_id + revision</code> 引用，可回溯到原文；接手人不必重读三次纪要。</p>
+      </div>
+      <p class="honest">说清楚边界：本地未给 PowerContext 配推理模型，<code>memory/search</code> 走的是
+        <code>mode=text</code> 的词面召回；配上 embedding 后会切到语义模式。这一点在界面侧栏也会如实显示。</p>
+    </div>
+  </section>
+
+  <section id="ui" class="wrap">
+    <h2>界面与实测输出</h2>
+    <p>核心链路跑在本地（Streamlit + WSL 里的 seekdb / PowerContext）。本站是展示站：
+      下面是真实运行截图与真实数值，不是设计稿。</p>
+    <div class="shots">
+      <figure>
+        <img src="assets/ui-ingest.png" alt="录入页：粘贴纪要后抽取出的候选条目与去重判定" loading="lazy">
+        <figcaption><b>录入</b>：抽出的每条都显示判定结果、最近距离和匹配到的旧条目</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/ui-ledger.png" alt="台账页：条数、未完成、超期与无人认领" loading="lazy">
+        <figcaption><b>台账与对账</b>：14 条 ｜ 10 未完成 ｜ 超期 3 ｜ 无人认领 3</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/ui-search.png" alt="检索验证页：关键词、语义、混合三路对比" loading="lazy">
+        <figcaption><b>检索验证</b>：三路结果并排，给评委直接验证 seekdb 的必要性</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/ui-handoff.png" alt="交接页：生成的交接卡与 PowerContext 写入" loading="lazy">
+        <figcaption><b>交接</b>：一张能直接发给接手人的卡片，一键走完 PowerContext 四步</figcaption>
+      </figure>
+    </div>
+
+    <h3>生成的交接卡（真实输出节选）</h3>
+    <pre class="card"><code># Aurora 登录改造 · 交接卡
+截至 2026-09-29｜张伟 → 赵磊
+
+## 目标
+把登录接口 P95 从 1.2s 降到 400ms 以内，灰度验证后全量发布
+
+## 已超期（3）
+- 输出接口改造技术方案｜张伟｜原定 2026-09-08
+- 交付登录页改版设计稿｜李静｜原定 2026-09-22
+- 数据库连接池存在被打满风险｜张伟｜原定 2026-09-18
+
+## 没人认领（3）
+- 新旧接口token不一致风险
+- 灰度发布策略
+- 灰度配置误操作风险
+
+## 生效中的决定与约束（3）
+- 灰度发布策略：灰度已放5%流量观察三天无明显异常，决定扩大到20%
+- 旧接口不下线约束：因移动端3.2版本仍在使用旧auth接口，该接口暂不能下线
+- 全量发布时间推迟至10月15日：原定2026-09-30全量发布，现推迟至2026-10-15
+
+## 还没确认的问题（2）
+- 是否支持短信验证码登录｜陈曦
+- 20%灰度回滚阈值待确认｜王强</code></pre>
+  </section>
+
+  <section id="run" class="band">
+    <div class="wrap">
+      <h2>怎么复现</h2>
+      <div class="stack">
+        <div>
+          <p class="k">依赖选型</p>
+          <ul class="plain">
+            <li>对话模型：比赛发放的 StepFun <code>step-3.5-flash</code>（只提供对话，无 embedding 接口）</li>
+            <li>向量：<code>fastembed</code> + <code>BAAI/bge-small-zh-v1.5</code>，ONNX 运行时，512 维，
+              完全不装 torch（此前 sentence-transformers 会拉 1.8GB CUDA 包并反复断流）</li>
+            <li>模型下载：<code>HF_ENDPOINT=https://hf-mirror.com</code>，WSL 内访问不到 huggingface.co</li>
+            <li>数据库：seekdb 嵌入式（<code>pyseekdb 1.4.0</code>），PowerContext 用独立 venv 避免依赖冲突</li>
+          </ul>
+        </div>
+        <div>
+          <p class="k">命令</p>
+          <pre class="cmd"><code># WSL：起 PowerContext Server
+python3.12 -m venv ~/pc-venv
+~/pc-venv/bin/pip install "powercontext[cli,server]==1.4.1"
+mkdir -p ~/pc-run && cd ~/pc-run
+~/pc-venv/bin/powercontext config init --template -o .env
+~/pc-venv/bin/powercontext server run
+
+# Windows：跑链路
+bash run.sh scripts/smoke_embed.py
+bash run.sh scripts/smoke_seekdb.py
+bash run.sh scripts/demo_e2e.py --reset
+bash run.sh scripts/setup_powercontext.py
+bash run.sh scripts/retrieval_check.py
+bash run.sh --ui        # http://localhost:8501</code></pre>
+        </div>
+      </div>
+      <p class="foot">四条链路的原始输出都留在仓库 <code>evidence/</code> 里（seekdb 三路对比、真实台账检索、
+        端到端逐条判定与交接卡、PowerContext 建 Scope 与召回），页面上每个数字都能在那几份日志里找到对应行。
+        开发全程使用 Qoder：链路设计、seekdb / PowerContext 接口核对（对着运行中服务的
+        <code>/openapi.json</code> 而不是猜字段）、WSL 环境排障、阈值校准与界面实现。
+        API Key 与 seekdb 数据不进仓库，只留在 <code>.env</code>（已在 <code>.gitignore</code>）。</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p>接力棒 Relay · 2026 OceanBase 数据库大赛 Qoder 赛道参赛作品</p>
+    <p class="muted">seekdb 负责「这件事和上次那件是不是同一件」，PowerContext 负责「为什么这么定，以及谁来接」。</p>
+  </div>
+</footer>
+</body>
+</html>

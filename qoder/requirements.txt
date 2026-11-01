@@ -1,0 +1,11 @@
+# 本地链路（WSL 里的 python3.12 venv）；PowerContext 另建 ~/pc-venv，版本见 README
+pyseekdb==1.4.0.post1
+pylibseekdb==1.4.0.post2
+fastembed==0.9.1
+onnxruntime==1.31.1
+tokenizers==0.23.3
+numpy==2.5.4
+openai==3.42.0
+httpx==0.28.1
+python-dotenv==1.2.4
+streamlit==1.66.1
