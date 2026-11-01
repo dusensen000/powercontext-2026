@@ -75,11 +75,44 @@ _EXPANSIONS = {
     "leg": ("litigation proceedings lawsuits claims contingencies investigations",),
     "cycl": ("seasonality cyclical",),
 }
-# Financial-statement intents and the page titles that answer them.
+# Financial-statement intents and the page titles that answer them. Titles are
+# matched against whitespace-free text because extracted statement headings are
+# routinely split across lines (``BALANCE SHEE\n\nt``). A question that names a
+# statement explicitly pins that statement's pages to the top of the page list.
 _CONCEPTS = (
     (
-        ("balance sheet", "quick ratio", "current ratio", "liquidity", "liabilit", "asset"),
-        ("balance sheet", "balance sheets"),
+        (
+            "balance sheet",
+            "balance-sheet",
+            "financial position",
+            "current ratio",
+            "quick ratio",
+            "liquidity",
+            "working capital",
+            "current asset",
+            "current liabilit",
+            "receivable",
+            "payable",
+            "inventor",
+            "capital-intensive",
+            "capital intensive",
+            "capital expenditure",
+            "capital expenditures",
+            "capex",
+            "pp&e",
+            "property, plant",
+            "ppne",
+            "invested capital",
+            "capital structure",
+            "leverage",
+            "debt",
+            "equity",
+            "return on assets",
+            "asset turnover",
+            "book value",
+        ),
+        ("balance sheet", "balance sheets", "statement of financial position"),
+        ("balance sheet", "balance-sheet", "statement of financial position"),
     ),
     (
         (
@@ -88,16 +121,56 @@ _CONCEPTS = (
             "statement of income",
             "statement of operations",
             "statements of operations",
+            "statement of earnings",
+            "statements of earnings",
+            "profit and loss",
+            "p&l",
+            "revenue",
+            "sales",
+            "cost of sales",
+            "cost of revenue",
             "gross margin",
+            "gross profit",
             "operating margin",
-            "margin",
+            "operating income",
+            "operating profit",
+            "net income",
+            "net earnings",
+            "net loss",
+            "earnings per share",
+            "eps",
+            "ebitda",
+            "ebit",
             "tax rate",
+            "effective tax",
+            "income tax",
+            "interest expense",
+            "restructuring",
+            "impairment",
+            "margin",
             "profit",
             "earnings",
-            "ebitda",
             "income",
         ),
-        ("statement of income", "statements of income", "statement of operations", "statements of operations"),
+        (
+            "statement of income",
+            "statements of income",
+            "statement of operations",
+            "statements of operations",
+            "statement of earnings",
+            "statements of earnings",
+        ),
+        (
+            "income statement",
+            "statements of income",
+            "statement of income",
+            "statement of operations",
+            "statements of operations",
+            "statement of earnings",
+            "statements of earnings",
+            "profit and loss",
+            "p&l",
+        ),
     ),
     (
         (
@@ -106,17 +179,58 @@ _CONCEPTS = (
             "operating activities",
             "investing",
             "financing",
-            "ebitda",
+            "free cash flow",
+            "operating cash",
+            "capital expenditure",
+            "capex",
             "depreciation",
             "amortization",
+            "dividend",
+            "repurchase",
+            "buyback",
+            "cash conversion",
         ),
         ("statement of cash flows", "statements of cash flows"),
+        ("cash flow statement", "statement of cash flows", "statements of cash flows", "cash flow"),
+    ),
+    (
+        ("segment", "segments", "business unit", "business units"),
+        (
+            "by business segment",
+            "business segment information",
+            "segment information",
+            "sales and operating income",
+            "segment results",
+            "results by segment",
+            "by segment",
+        ),
+        (),
     ),
 )
-_HEADING_WEIGHT = 3.0
-_BIGRAM_WEIGHT = 0.6
 _STATEMENT_WEIGHT = 10.0
+_HEADING_WEIGHT = 2.0
+_BIGRAM_WEIGHT = 0.6
 _SYNONYM_WEIGHT = 1.0
+
+
+def _flatten_phrase(value: str) -> str:
+    return re.sub(r"\s+", "", value.lower())
+
+
+_CONCEPTS = tuple(
+    (
+        triggers,
+        tuple(_flatten_phrase(title) for title in titles),
+        tuple(explicit.lower() for explicit in explicit_phrases),
+    )
+    for triggers, titles, explicit_phrases in _CONCEPTS
+)
+_PRIMARY_TITLES = tuple(
+    title
+    for _triggers, titles, _explicit in _CONCEPTS[:3]
+    for title in titles
+)
+_SEGMENT_TITLES = _CONCEPTS[3][1]
 _HEADING_MAX_TF = 5
 _BM25_K1 = 1.2
 _BM25_B = 0.75
@@ -148,7 +262,7 @@ class PDFPageSource(Source):
     text: str
 
 
-def parse_pdf_document(value: PDFDocumentInput, /) -> tuple[PDFPageInput, ...]:
+def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
     """Extract every physical page, in order, or fail without partial pages."""
 
     if not isinstance(value.document_id, str) or not value.document_id.strip():
@@ -248,6 +362,8 @@ class _PageRecord:
     tf: Counter = field(default_factory=Counter)
     heading: frozenset[str] = frozenset()
     pairs: frozenset[tuple[str, str]] = frozenset()
+    flat: str = ""
+    head: str = ""
 
     @property
     def key(self) -> tuple[str, int]:
@@ -307,28 +423,54 @@ async def _load_page_records(memory: Any) -> tuple[_PageRecord, ...]:
         return ()
     page = await memory.list()
     records: dict[tuple[str, int], _PageRecord] = {}
+    origins: dict[tuple[str, int], str] = {}
+    seen_text: dict[str, list[str]] = {}
     for record in page.entries:
         for reference in record.entry.sources:
             if reference.source_type != PDF_PAGE_SOURCE_NAME:
                 continue
             parsed = _parse_page_source_id(reference.source_id)
-            if parsed is None or parsed in records:
+            if parsed is None:
                 continue
             document_id, page_number = parsed
-            text = record.entry.text
-            prefix = f"{document_id}\n"
-            if text.startswith(prefix):
-                text = text[len(prefix) :]
-            elif text == document_id:
-                text = ""
-            records[parsed] = _PageRecord(
-                document_id=document_id,
-                page_number=page_number,
-                text=text.lower(),
-                citation=record.citation,
-            )
+            if document_id is None:
+                document_id = _document_id_from_entry(record.entry.text)
+            key = (document_id, page_number)
+            text = _page_text(record.entry.text, document_id)
+            existing = records.get(key)
+            if existing is None:
+                records[key] = _PageRecord(
+                    document_id=document_id,
+                    page_number=page_number,
+                    text=text.lower(),
+                    citation=record.citation,
+                )
+                origins[key] = reference.source_id
+                seen_text[reference.source_id] = [text]
+            elif origins[key] == reference.source_id and text and text not in seen_text[reference.source_id]:
+                records[key] = _PageRecord(
+                    document_id=existing.document_id,
+                    page_number=existing.page_number,
+                    text=f"{existing.text}\n{text.lower()}",
+                    citation=existing.citation,
+                )
+                seen_text[reference.source_id].append(text)
             break
     return tuple(records.values())
+
+
+def _document_id_from_entry(text: str) -> str:
+    first, separator, _rest = text.partition("\n")
+    return first if separator else text
+
+
+def _page_text(entry_text: str, document_id: str) -> str:
+    prefix = f"{document_id}\n"
+    if document_id and entry_text.startswith(prefix):
+        return entry_text[len(prefix) :]
+    if document_id and entry_text.strip() == document_id:
+        return ""
+    return entry_text
 
 
 def _prepare_page(record: _PageRecord) -> None:
@@ -336,6 +478,10 @@ def _prepare_page(record: _PageRecord) -> None:
         return
     record.stems = [_stem(token) for token in _TOKEN.findall(record.text)]
     record.tf = Counter(record.stems)
+    record.flat = _flatten_phrase(record.text)
+    record.head = "".join(
+        _flatten_phrase(line) for line in [line for line in record.text.splitlines() if line.strip()][:6]
+    )
     headings: set[str] = set()
     for line in record.text.splitlines():
         words = _TOKEN.findall(line)
@@ -366,11 +512,24 @@ def _rank_pages(
         _prepare_page(record)
     idf, _ = _idf_map(pool, tuple(weights))
     avgdl = sum(len(record.stems) for record in pool) / len(pool) or 1.0
-    concepts = tuple(
-        titles for triggers, titles in _CONCEPTS if any(trigger in question.lower() for trigger in triggers)
+    lowered = question.lower()
+    strong_titles = tuple(
+        titles
+        for _triggers, titles, explicit in _CONCEPTS
+        if any(phrase in lowered for phrase in explicit)
     )
+    has_metric_intent = any(
+        not any(phrase in lowered for phrase in explicit)
+        and any(trigger in lowered for trigger in triggers)
+        for triggers, _titles, explicit in _CONCEPTS[:3]
+    )
+    medium_titles = _PRIMARY_TITLES if has_metric_intent else ()
+    if any(trigger in lowered for trigger in _CONCEPTS[3][0]):
+        medium_titles = medium_titles + _SEGMENT_TITLES
+    tiered = target is not None or len(documents) == 1
 
     scores: dict[tuple[str, int], float] = {}
+    tiers: dict[tuple[str, int], int] = {}
     for record in pool:
         length = len(record.stems)
         score = 0.0
@@ -393,12 +552,20 @@ def _rank_pages(
         for left, right in pairs:
             if (left, right) in record.pairs:
                 score += _BIGRAM_WEIGHT * (idf.get(left, 0.0) + idf.get(right, 0.0))
-        for titles in concepts:
-            if any(title in record.text for title in titles):
-                score += _STATEMENT_WEIGHT
+        tier = 0
+        if tiered and strong_titles and any(title in record.head for titles in strong_titles for title in titles):
+            tier = 2
+            score += _STATEMENT_WEIGHT
+        elif tiered and medium_titles and any(title in record.head for title in medium_titles):
+            tier = 1
+            score += _STATEMENT_WEIGHT
+        tiers[record.key] = tier
         scores[record.key] = score
 
-    ordered = sorted(pool, key=lambda record: (-scores[record.key], record.document_id, record.page_number))
+    ordered = sorted(
+        pool,
+        key=lambda record: (-tiers[record.key], -scores[record.key], record.document_id, record.page_number),
+    )
     return tuple(record.citation for record in ordered[:limit])
 
 
@@ -481,6 +648,12 @@ def _identity(question: str, document_id: str) -> tuple[float, set[str]]:
             joined = left + right
             if len(joined) >= 6 and joined in normalized:
                 score += 2.0
+    prefix = re.sub(r"[^a-z0-9]+", "", document_id.split("_", 1)[0].lower())
+    if len(prefix) >= 2 and re.search(
+        rf"(?<![a-z0-9]){re.escape(prefix)}(?![a-z0-9])", question.lower()
+    ):
+        score += 2.0
+        matched.add(prefix)
     return score, matched
 
 
@@ -551,22 +724,40 @@ def _page_from_entry(entry: Any) -> tuple[str, int] | None:
         if reference.source_type != PDF_PAGE_SOURCE_NAME:
             continue
         parsed = _parse_page_source_id(reference.source_id)
-        if parsed is not None:
-            return parsed
+        if parsed is None:
+            continue
+        document_id, page_number = parsed
+        if document_id is None:
+            document_id = _document_id_from_entry(entry.text)
+        return document_id, page_number
     return None
 
 
 def _page_source_id(document_id: str, document_sha256: str, page_number: int) -> str:
     source_id = f"pdf:{quote(document_id, safe='')}:{document_sha256}:{page_number}"
-    if len(source_id) > MAX_SOURCE_ID_LENGTH:
-        raise ValueError(  # noqa: TRY003
-            f"pdf page source_id must not exceed {MAX_SOURCE_ID_LENGTH} characters"
-        )
-    return source_id
+    if len(source_id) <= MAX_SOURCE_ID_LENGTH:
+        return source_id
+    identity = f"{document_id}\x00{document_sha256}\x00{page_number}".encode()
+    digest = hashlib.sha256(identity).hexdigest()[:40]
+    return f"pdf:~{digest}:{page_number}"
 
 
-def _parse_page_source_id(source_id: str) -> tuple[str, int] | None:
+def _parse_page_source_id(source_id: str) -> tuple[str | None, int] | None:
     parts = source_id.split(":")
+    compact = (
+        len(parts) == 3
+        and parts[0] == "pdf"
+        and len(parts[1]) == 41
+        and parts[1].startswith("~")
+    )
+    if compact:
+        try:
+            page_number = int(parts[2])
+        except ValueError:
+            return None
+        if page_number < 1:
+            return None
+        return None, page_number
     if len(parts) != 4 or parts[0] != "pdf" or len(parts[2]) != 64:
         return None
     try:
