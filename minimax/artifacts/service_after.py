@@ -13,7 +13,7 @@ def list_tasks(
 
     REQ-001: sort by (due_date, id) ascending.
     REQ-002: sort first, then paginate with limit/offset.
-    REQ-003: filter by status before sorting/pagination (not implemented yet).
+    REQ-003: filter by status before sorting/pagination.
     REQ-004: validate limit/offset and raise ValueError on invalid input.
     """
     if limit <= 0:
@@ -21,9 +21,10 @@ def list_tasks(
     if offset < 0:
         raise ValueError("offset must be >= 0")
 
-    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))
-
+    filtered = tasks
     if status is not None:
-        ordered = [task for task in ordered if task.status == status]
+        filtered = (task for task in tasks if task.status == status)
+
+    ordered = sorted(filtered, key=lambda task: (task.due_date, task.id))
 
     return ordered[offset : offset + limit]

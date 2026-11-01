@@ -68,6 +68,8 @@ export MINIMAX_API_KEY=replace-with-your-key
 export MINIMAX_MODEL=MiniMax-M3
 export MINIMAX_BASE_URL=https://api.minimaxi.com   # 国际站可用 https://api.minimax.io
 export MINIMAX_PROTOCOL=minimax                    # 或 openai（/v1/chat/completions）
+export MINIMAX_MAX_TOKENS=8192                     # M3 的推理内容也占用预算，过小会导致 diff 被截断
+export MINIMAX_TIMEOUT=180
 
 # PowerContext（默认 http://127.0.0.1:8000）
 export POWERCONTEXT_URL=http://127.0.0.1:8000
@@ -169,14 +171,14 @@ python -m sddctx demo
 | 环境 | 数据库 | 模型 | 状态复用 | 结果 |
 | --- | --- | --- | --- | --- |
 | Windows 11 + Python 3.13 | sqlite（联调） | `stub` 回放 | PowerContext 1.4.1 HTTP | 12/12 |
-| WSL2 Ubuntu 24.04 + Python 3.12 | **seekdb 1.4.0** | `stub` 回放 | PowerContext 1.4.1 HTTP | 12/12，`artifacts/` 即本次运行产物 |
-| Linux + 真实密钥 | seekdb | **MiniMax-M3** | PowerContext 1.4.1 HTTP | 提交前需执行一次 |
+| WSL2 Ubuntu 24.04 + Python 3.12 | **seekdb 1.4.0** | `stub` 回放 | PowerContext 1.4.1 HTTP | 12/12 |
+| WSL2 Ubuntu 24.04 + Python 3.12 | **seekdb 1.4.0** | **MiniMax-M3（真实密钥）** | PowerContext 1.4.1 HTTP | 12/12，第 1 次尝试即通过；`artifacts/` 即本次运行产物 |
 
 `artifacts/dev_record.json` 的 `live_minimax` 字段会标记模型是否真实调用；提交前应为 `true`。
 
 ## 8. 已知限制
 
-- seekdb 仅支持 Linux；Windows 本地联调需 `SDDCTX_DB_BACKEND=sqlite`。仓库内 `artifacts/` 已由 WSL2 + seekdb 生成，但模型仍是 `stub` 回放；提交前请用真实 MiniMax 密钥在 Linux/WSL 上执行一次 `make clean && make demo` 覆盖。
+- seekdb 仅支持 Linux；Windows 本地联调需 `SDDCTX_DB_BACKEND=sqlite`。仓库内 `artifacts/` 已由 WSL2 + seekdb + 真实 MiniMax-M3 生成（`live_minimax: true`），可用 `make clean && make demo` 重放（需自备密钥）。
 - 检索是 SQL `LIKE` + 关键词命中计数的轻量实现，不依赖 embedding；任务描述过短时召回质量会下降。
 - 代码修改为单文件 unified diff，最多重试 3 轮；不处理跨文件重构。
 - 离线 `SDDCTX_PROVIDER=stub` 会回放 `sddctx/golden_patch.diff`，仅用于流水线冒烟测试，不替代 MiniMax 的真实生成。

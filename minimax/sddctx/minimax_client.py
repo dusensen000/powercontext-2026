@@ -46,8 +46,8 @@ def build_messages(
     for path, text in file_contents.items():
         parts.append(f"### {path}\n```python\n{text}\n```")
     if failure:
-        parts.append("## 上一轮失败测试输出（请修复）\n```text\n" + failure[-4000:] + "\n```")
-    parts.append("现在输出修复该任务的 unified diff。")
+        parts.append("## 上一轮反馈（请修复）\n```text\n" + failure[-4000:] + "\n```")
+    parts.append("现在只输出实现该任务的 unified diff，第一行必须是 `diff --git`。")
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": "\n\n".join(parts)},
@@ -94,7 +94,7 @@ class MiniMaxClient:
             "model": self.model,
             "messages": messages,
             "temperature": 0.1,
-            "max_tokens": 4096,
+            "max_tokens": config.MINIMAX_MAX_TOKENS,
         }
         request = urllib.request.Request(
             self._endpoint(),
@@ -106,7 +106,7 @@ class MiniMaxClient:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=120) as response:
+            with urllib.request.urlopen(request, timeout=config.MINIMAX_TIMEOUT) as response:
                 body = json.load(response)
         except urllib.error.HTTPError as error:
             detail = error.read().decode("utf-8", errors="replace")
@@ -125,6 +125,11 @@ class MiniMaxClient:
                 )
             if content:
                 return str(content)
+            if choices[0].get("finish_reason") == "length":
+                raise RuntimeError(
+                    "MiniMax output truncated by max_tokens before any content; "
+                    f"raise MINIMAX_MAX_TOKENS (currently {config.MINIMAX_MAX_TOKENS})"
+                )
         if body.get("reply"):
             return str(body["reply"])
         raise RuntimeError(f"MiniMax response has no content: {json.dumps(body)[:500]}")

@@ -1,6 +1,6 @@
 $ cd /root/sddctx/.work/sample && python -m pytest tests/test_target_filter.py -q
 repo_commit=unknown code_version=f62d4a14ba700190
-exit=1 duration=2.598s
+exit=1 duration=0.544s
 
 FF                                                                       [100%]
 =================================== FAILURES ===================================
@@ -30,4 +30,4 @@ tests/test_target_filter.py:24: AssertionError
 =========================== short test summary info ============================
 FAILED tests/test_target_filter.py::test_filter_active_only - assert [1, 2, 3...
 FAILED tests/test_target_filter.py::test_filter_then_sort_and_paginate - asse...
-2 failed in 0.22s
+2 failed in 0.03s

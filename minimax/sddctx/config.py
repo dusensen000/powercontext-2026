@@ -39,6 +39,10 @@ MINIMAX_BASE_URL = (env("MINIMAX_BASE_URL", "https://api.minimaxi.com") or "").r
 MINIMAX_MODEL = env("MINIMAX_MODEL", "MiniMax-M3")
 # "minimax" uses /v1/text/chatcompletion_v2; "openai" uses /v1/chat/completions.
 MINIMAX_PROTOCOL = env("MINIMAX_PROTOCOL", "minimax")
+# Reasoning models spend part of this budget on hidden reasoning, so keep it
+# generous enough that the diff itself is never truncated.
+MINIMAX_MAX_TOKENS = int(env("MINIMAX_MAX_TOKENS", "8192") or "8192")
+MINIMAX_TIMEOUT = int(env("MINIMAX_TIMEOUT", "180") or "180")
 
 TASK = (
     "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，"

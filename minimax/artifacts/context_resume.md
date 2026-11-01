@@ -5,7 +5,7 @@
 
 ## 上一轮任务进展（来自状态存储）
 - 任务：taskboard-status-filter（done）
-- 更新时间：2026-10-31T11:57:55
+- 更新时间：2026-11-01T14:22:41
 - 变更文件：src/taskboard/service.py
 - 已完成：
   - 实现 REQ-003：status 非空时在排序后、分页前筛选

@@ -1,6 +1,6 @@
 $ cd /root/sddctx/.work/sample && python -m pytest tests/test_regression.py -q
-repo_commit=unknown code_version=ab7c26e43d27e51d
-exit=0 duration=2.816s
+repo_commit=unknown code_version=99a84d96a1f2a32f
+exit=0 duration=0.543s
 
 .....                                                                    [100%]
-5 passed in 0.08s
+5 passed in 0.01s

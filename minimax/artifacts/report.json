@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-31T11:57:58",
-  "duration_s": 19.73,
+  "generated_at": "2026-11-01T14:22:41",
+  "duration_s": 38.56,
   "task": "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，None 时返回全部；筛选必须在排序和分页之前完成，且不能破坏既有的排序、分页与输入校验行为。",
-  "provider": "stub",
+  "provider": "live",
   "db_backend": "seekdb",
   "state_backend": "powercontext",
   "steps": [
@@ -10,73 +10,73 @@
       "name": "reset artifacts",
       "ok": true,
       "detail": "cleaned",
-      "duration_s": 0.001
+      "duration_s": 0.002
     },
     {
       "name": "ingest specs/code/tests into database",
       "ok": true,
       "detail": "{'spec': 5, 'code': 5, 'test': 9, 'total': 19} (backend=seekdb, db=sddctx)",
-      "duration_s": 0.446
+      "duration_s": 0.117
     },
     {
       "name": "build development context",
       "ok": true,
       "detail": "specs=['REQ-003', 'REQ-001', 'REQ-002', 'REQ-004'] code=['list_tasks', 'Task'] tests=['test_no_status_returns_all', 'test_filter_active_only', 'test_filter_then_sort_and_paginate', 'test_sorts_by_due_date_then_id', 'test_pagination_after_sorting', 'test_invalid_limit_raises']",
-      "duration_s": 0.038
+      "duration_s": 0.01
     },
     {
       "name": "confirm target tests fail before the change",
       "ok": true,
       "detail": "target tests fail as expected: {'failed': 2}",
-      "duration_s": 2.619
+      "duration_s": 0.547
     },
     {
-      "name": "MiniMax modifies code and target tests pass (provider=stub)",
+      "name": "MiniMax modifies code and target tests pass (provider=live)",
       "ok": true,
-      "detail": "provider=StubClient attempts=1",
-      "duration_s": 3.413
+      "detail": "provider=MiniMaxClient attempts=1",
+      "duration_s": 34.067
     },
     {
       "name": "re-run target tests after the change",
       "ok": true,
       "detail": "target tests pass: {'passed': 2}",
-      "duration_s": 3.893
+      "duration_s": 0.552
     },
     {
       "name": "run regression tests",
       "ok": true,
       "detail": "regression tests pass: {'passed': 5}",
-      "duration_s": 2.823
+      "duration_s": 0.546
     },
     {
       "name": "write MiniMax development record",
       "ok": true,
-      "detail": "wrote dev_record.json: 1 attempt(s), diff_sha1=8c0b45db929fce4a3289b190482ef34b8cfe439d",
-      "duration_s": 0.001
+      "detail": "wrote dev_record.json: 1 attempt(s), diff_sha1=76234432d3227fff60eb0b095f7d02baf41a2041",
+      "duration_s": 0.0
     },
     {
       "name": "save task progress",
       "ok": true,
-      "detail": "backend=powercontext scope=scp_41h9v5b1aafgyfcgjab2fztpq2 artifacts=['art_b11cfd939f084e49ae3e986be615e668']",
-      "duration_s": 0.63
+      "detail": "backend=powercontext scope=scp_41h9v5b1aafgyfcgjab2fztpq2 artifacts=['art_22146e721eac42239d198983fc91b8a2']",
+      "duration_s": 0.059
     },
     {
       "name": "resume progress in a new process",
       "ok": true,
       "detail": "separate process resumed taskboard-status-filter (1 file(s), status=done)",
-      "duration_s": 0.856
+      "duration_s": 0.128
     },
     {
       "name": "use resumed state in the next task context",
       "ok": true,
       "detail": "next-task context carries taskboard-status-filter (1 todo item(s)) and 3 specs",
-      "duration_s": 0.158
+      "duration_s": 0.028
     },
     {
       "name": "spec change re-ingest keeps context valid",
       "ok": true,
       "detail": "re-ingested 21 chunks in the evolved database; REQ-005 ranked first; phase-1 index unchanged",
-      "duration_s": 1.31
+      "duration_s": 0.254
     }
   ],
   "ingest": {
@@ -296,22 +296,22 @@
     "target": "tests/test_target_filter.py",
     "exit_code": 1,
     "passed": false,
-    "duration_s": 2.598,
+    "duration_s": 0.544,
     "counts": {
       "failed": 2
     },
     "code_version": "f62d4a14ba700190",
-    "output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n___________________________ test_filter_active_only ____________________________\n\n    def test_filter_active_only():\n        result = list_tasks(make_tasks(), status=\"active\")\n>       assert [t.id for t in result] == [1, 3, 5]\nE       assert [1, 2, 3, 4, 5] == [1, 3, 5]\nE         \nE         At index 1 diff: 2 != 3\nE         Left contains 2 more items, first extra item: 4\nE         Use -v to get more diff\n\ntests/test_target_filter.py:19: AssertionError\n______________________ test_filter_then_sort_and_paginate ______________________\n\n    def test_filter_then_sort_and_paginate():\n        result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n>       assert [t.id for t in result] == [1, 3]\nE       assert [1, 2] == [1, 3]\nE         \nE         At index 1 diff: 2 != 3\nE         Use -v to get more diff\n\ntests/test_target_filter.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_target_filter.py::test_filter_active_only - assert [1, 2, 3...\nFAILED tests/test_target_filter.py::test_filter_then_sort_and_paginate - asse...\n2 failed in 0.22s",
+    "output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n___________________________ test_filter_active_only ____________________________\n\n    def test_filter_active_only():\n        result = list_tasks(make_tasks(), status=\"active\")\n>       assert [t.id for t in result] == [1, 3, 5]\nE       assert [1, 2, 3, 4, 5] == [1, 3, 5]\nE         \nE         At index 1 diff: 2 != 3\nE         Left contains 2 more items, first extra item: 4\nE         Use -v to get more diff\n\ntests/test_target_filter.py:19: AssertionError\n______________________ test_filter_then_sort_and_paginate ______________________\n\n    def test_filter_then_sort_and_paginate():\n        result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n>       assert [t.id for t in result] == [1, 3]\nE       assert [1, 2] == [1, 3]\nE         \nE         At index 1 diff: 2 != 3\nE         Use -v to get more diff\n\ntests/test_target_filter.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_target_filter.py::test_filter_active_only - assert [1, 2, 3...\nFAILED tests/test_target_filter.py::test_filter_then_sort_and_paginate - asse...\n2 failed in 0.03s",
     "log": "artifacts/test_logs/before_target.log"
   },
   "development": {
-    "provider": "StubClient",
+    "provider": "MiniMaxClient",
     "attempts": [
       {
         "attempt": 1,
-        "provider": "StubClient",
-        "diff_sha1": "8c0b45db929fce4a3289b190482ef34b8cfe439d",
-        "diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\nindex 7ca2591..261af1a 100644\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -23,6 +23,7 @@ def list_tasks(\n \n     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    if status is not None:\n+        ordered = [task for task in ordered if task.status == status]\n \n     return ordered[offset : offset + limit]\n",
+        "provider": "MiniMaxClient",
+        "diff_sha1": "76234432d3227fff60eb0b095f7d02baf41a2041",
+        "diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -13,16 +13,18 @@ def list_tasks(\n \n     REQ-001: sort by (due_date, id) ascending.\n     REQ-002: sort first, then paginate with limit/offset.\n-    REQ-003: filter by status before sorting/pagination (not implemented yet).\n+    REQ-003: filter by status before sorting/pagination.\n     REQ-004: validate limit/offset and raise ValueError on invalid input.\n     \"\"\"\n     if limit <= 0:\n         raise ValueError(\"limit must be a positive integer\")\n     if offset < 0:\n         raise ValueError(\"offset must be >= 0\")\n \n-    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n+    filtered = tasks\n+    if status is not None:\n+        filtered = (task for task in tasks if task.status == status)\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    ordered = sorted(filtered, key=lambda task: (task.due_date, task.id))\n \n     return ordered[offset : offset + limit]\n",
         "applied": [
           "src/taskboard/service.py"
         ],
@@ -320,52 +320,52 @@
           "target": "tests/test_target_filter.py",
           "exit_code": 0,
           "passed": true,
-          "duration_s": 3.401,
+          "duration_s": 0.483,
           "counts": {
             "passed": 2
           },
-          "code_version": "ab7c26e43d27e51d",
-          "output": "..                                                                       [100%]\n2 passed in 0.08s",
+          "code_version": "99a84d96a1f2a32f",
+          "output": "..                                                                       [100%]\n2 passed in 0.01s",
           "log": "artifacts/test_logs/attempt1_target.log"
         }
       }
     ],
     "ok": true,
-    "final_diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\nindex 7ca2591..261af1a 100644\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -23,6 +23,7 @@ def list_tasks(\n \n     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    if status is not None:\n+        ordered = [task for task in ordered if task.status == status]\n \n     return ordered[offset : offset + limit]\n"
+    "final_diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -13,16 +13,18 @@ def list_tasks(\n \n     REQ-001: sort by (due_date, id) ascending.\n     REQ-002: sort first, then paginate with limit/offset.\n-    REQ-003: filter by status before sorting/pagination (not implemented yet).\n+    REQ-003: filter by status before sorting/pagination.\n     REQ-004: validate limit/offset and raise ValueError on invalid input.\n     \"\"\"\n     if limit <= 0:\n         raise ValueError(\"limit must be a positive integer\")\n     if offset < 0:\n         raise ValueError(\"offset must be >= 0\")\n \n-    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n+    filtered = tasks\n+    if status is not None:\n+        filtered = (task for task in tasks if task.status == status)\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    ordered = sorted(filtered, key=lambda task: (task.due_date, task.id))\n \n     return ordered[offset : offset + limit]\n"
   },
   "after": {
     "target": "tests/test_target_filter.py",
     "exit_code": 0,
     "passed": true,
-    "duration_s": 3.887,
+    "duration_s": 0.549,
     "counts": {
       "passed": 2
     },
-    "code_version": "ab7c26e43d27e51d",
-    "output": "..                                                                       [100%]\n2 passed in 0.06s",
+    "code_version": "99a84d96a1f2a32f",
+    "output": "..                                                                       [100%]\n2 passed in 0.01s",
     "log": "artifacts/test_logs/after_target.log"
   },
   "regression": {
     "target": "tests/test_regression.py",
     "exit_code": 0,
     "passed": true,
-    "duration_s": 2.816,
+    "duration_s": 0.543,
     "counts": {
       "passed": 5
     },
-    "code_version": "ab7c26e43d27e51d",
-    "output": ".....                                                                    [100%]\n5 passed in 0.08s",
+    "code_version": "99a84d96a1f2a32f",
+    "output": ".....                                                                    [100%]\n5 passed in 0.01s",
     "log": "artifacts/test_logs/regression.log"
   },
   "dev_record": {
     "task_id": "taskboard-status-filter",
     "task": "为 list_tasks 增加按 status 筛选的能力：status 非空时只返回该状态的任务，None 时返回全部；筛选必须在排序和分页之前完成，且不能破坏既有的排序、分页与输入校验行为。",
-    "created_at": "2026-10-31T11:57:55",
-    "provider": "StubClient",
-    "model": "stub-replay",
+    "created_at": "2026-11-01T14:22:41",
+    "provider": "MiniMaxClient",
+    "model": "MiniMax-M3",
     "protocol": "minimax",
-    "endpoint": "",
-    "live_minimax": false,
+    "endpoint": "https://api.minimaxi.com",
+    "live_minimax": true,
     "context_file": "artifacts/context.json",
     "context_sources": [
       {
@@ -437,26 +437,26 @@
       },
       "code_version": "f62d4a14ba700190",
       "log": "artifacts/test_logs/before_target.log",
-      "output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n___________________________ test_filter_active_only ____________________________\n\n    def test_filter_active_only():\n        result = list_tasks(make_tasks(), status=\"active\")\n>       assert [t.id for t in result] == [1, 3, 5]\nE       assert [1, 2, 3, 4, 5] == [1, 3, 5]\nE         \nE         At index 1 diff: 2 != 3\nE         Left contains 2 more items, first extra item: 4\nE         Use -v to get more diff\n\ntests/test_target_filter.py:19: AssertionError\n______________________ test_filter_then_sort_and_paginate ______________________\n\n    def test_filter_then_sort_and_paginate():\n        result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n>       assert [t.id for t in result] == [1, 3]\nE       assert [1, 2] == [1, 3]\nE         \nE         At index 1 diff: 2 != 3\nE         Use -v to get more diff\n\ntests/test_target_filter.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_target_filter.py::test_filter_active_only - assert [1, 2, 3...\nFAILED tests/test_target_filter.py::test_filter_then_sort_and_paginate - asse...\n2 failed in 0.22s"
+      "output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n___________________________ test_filter_active_only ____________________________\n\n    def test_filter_active_only():\n        result = list_tasks(make_tasks(), status=\"active\")\n>       assert [t.id for t in result] == [1, 3, 5]\nE       assert [1, 2, 3, 4, 5] == [1, 3, 5]\nE         \nE         At index 1 diff: 2 != 3\nE         Left contains 2 more items, first extra item: 4\nE         Use -v to get more diff\n\ntests/test_target_filter.py:19: AssertionError\n______________________ test_filter_then_sort_and_paginate ______________________\n\n    def test_filter_then_sort_and_paginate():\n        result = list_tasks(make_tasks(), status=\"active\", limit=2, offset=0)\n>       assert [t.id for t in result] == [1, 3]\nE       assert [1, 2] == [1, 3]\nE         \nE         At index 1 diff: 2 != 3\nE         Use -v to get more diff\n\ntests/test_target_filter.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_target_filter.py::test_filter_active_only - assert [1, 2, 3...\nFAILED tests/test_target_filter.py::test_filter_then_sort_and_paginate - asse...\n2 failed in 0.03s"
     },
     "attempts": [
       {
         "attempt": 1,
-        "provider": "StubClient",
+        "provider": "MiniMaxClient",
         "prompt_file": "artifacts/prompts/attempt1.json",
-        "diff_sha1": "8c0b45db929fce4a3289b190482ef34b8cfe439d",
+        "diff_sha1": "76234432d3227fff60eb0b095f7d02baf41a2041",
         "applied": [
           "src/taskboard/service.py"
         ],
         "error": null,
-        "diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\nindex 7ca2591..261af1a 100644\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -23,6 +23,7 @@ def list_tasks(\n \n     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    if status is not None:\n+        ordered = [task for task in ordered if task.status == status]\n \n     return ordered[offset : offset + limit]\n",
+        "diff": "diff --git a/src/taskboard/service.py b/src/taskboard/service.py\n--- a/src/taskboard/service.py\n+++ b/src/taskboard/service.py\n@@ -13,16 +13,18 @@ def list_tasks(\n \n     REQ-001: sort by (due_date, id) ascending.\n     REQ-002: sort first, then paginate with limit/offset.\n-    REQ-003: filter by status before sorting/pagination (not implemented yet).\n+    REQ-003: filter by status before sorting/pagination.\n     REQ-004: validate limit/offset and raise ValueError on invalid input.\n     \"\"\"\n     if limit <= 0:\n         raise ValueError(\"limit must be a positive integer\")\n     if offset < 0:\n         raise ValueError(\"offset must be >= 0\")\n \n-    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))\n+    filtered = tasks\n+    if status is not None:\n+        filtered = (task for task in tasks if task.status == status)\n \n-    # TODO(REQ-003): apply the status filter here, before pagination.\n+    ordered = sorted(filtered, key=lambda task: (task.due_date, task.id))\n \n     return ordered[offset : offset + limit]\n",
         "target_tests": {
           "passed": true,
           "exit_code": 0,
           "counts": {
             "passed": 2
           },
-          "code_version": "ab7c26e43d27e51d",
+          "code_version": "99a84d96a1f2a32f",
           "log": "artifacts/test_logs/attempt1_target.log"
         }
       }
@@ -467,7 +467,7 @@
       "counts": {
         "passed": 2
       },
-      "code_version": "ab7c26e43d27e51d",
+      "code_version": "99a84d96a1f2a32f",
       "log": "artifacts/test_logs/after_target.log"
     },
     "regression": {
@@ -476,7 +476,7 @@
       "counts": {
         "passed": 5
       },
-      "code_version": "ab7c26e43d27e51d",
+      "code_version": "99a84d96a1f2a32f",
       "log": "artifacts/test_logs/regression.log"
     },
     "final_diff_file": "artifacts/diff.patch"
@@ -485,7 +485,7 @@
     "backend": "powercontext",
     "scope_id": "scp_41h9v5b1aafgyfcgjab2fztpq2",
     "artifacts": [
-      "art_b11cfd939f084e49ae3e986be615e668"
+      "art_22146e721eac42239d198983fc91b8a2"
     ]
   },
   "reload": {
@@ -495,9 +495,9 @@
           "src/taskboard/service.py"
         ],
         "attempt": 1,
-        "diff_sha1": "8c0b45db929fce4a3289b190482ef34b8cfe439d",
+        "diff_sha1": "76234432d3227fff60eb0b095f7d02baf41a2041",
         "error": null,
-        "provider": "StubClient",
+        "provider": "MiniMaxClient",
         "target_passed": true
       }
     ],
@@ -591,7 +591,7 @@
     "todo": [
       "按 REQ-005（docs/sample-task.md 的演进场景）支持 priority 排序"
     ],
-    "updated_at": "2026-10-31T11:57:55",
+    "updated_at": "2026-11-01T14:22:41",
     "verification": {
       "regression_counts": {
         "passed": 5
@@ -721,7 +721,7 @@
     "history": {
       "task_id": "taskboard-status-filter",
       "status": "done",
-      "updated_at": "2026-10-31T11:57:55",
+      "updated_at": "2026-11-01T14:22:41",
       "changed_files": [
         "src/taskboard/service.py"
       ],

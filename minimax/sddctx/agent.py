@@ -243,8 +243,11 @@ def develop(
     code_paths = [item["path"] for item in bundle["code"]]
     failure: str | None = None
     attempts: List[Dict[str, Any]] = []
+    snapshot = _snapshot(workdir)
 
     for attempt in range(1, max_attempts + 1):
+        if attempt > 1:
+            _restore(workdir, snapshot)
         messages = build_messages(bundle, source_files(workdir, code_paths), failure)
         prompt_dir = config.ARTIFACTS / "prompts"
         prompt_dir.mkdir(parents=True, exist_ok=True)
@@ -255,6 +258,7 @@ def develop(
             ),
             encoding="utf-8",
         )
+        reply = ""
         try:
             reply = client.complete(messages)
             diff = extract_diff(reply)
@@ -265,6 +269,11 @@ def develop(
                  "error": str(exc), "target": None}
             )
             failure = f"上一步失败：{exc}"
+            if reply:
+                failure += (
+                    "\n你的上一轮输出（无法解析或无法应用）如下，请直接给出修正后的 unified diff：\n"
+                    + reply[-1500:]
+                )
             continue
 
         result = run_pytest(workdir, target, f"attempt{attempt}_target")
@@ -281,7 +290,7 @@ def develop(
         )
         if result["passed"]:
             break
-        failure = result["output"]
+        failure = "上一轮修改后目标测试仍未通过：\n" + result["output"]
 
     last = attempts[-1] if attempts else {}
     final_diff = next(
@@ -293,3 +302,25 @@ def develop(
         "ok": bool(last.get("target") and last["target"]["passed"]),
         "final_diff": final_diff,
     }
+
+
+def _snapshot(workdir: Path) -> Dict[str, bytes]:
+    """Capture src/tests so a failed attempt can be rolled back before retrying."""
+    files: Dict[str, bytes] = {}
+    for path in sorted(
+        list((workdir / "src").rglob("*.py")) + list((workdir / "tests").rglob("test_*.py"))
+    ):
+        files[path.relative_to(workdir).as_posix()] = path.read_bytes()
+    return files
+
+
+def _restore(workdir: Path, snapshot: Dict[str, bytes]) -> None:
+    for path in list((workdir / "src").rglob("*.py")) + list(
+        (workdir / "tests").rglob("test_*.py")
+    ):
+        if path.relative_to(workdir).as_posix() not in snapshot:
+            path.unlink()
+    for rel, data in snapshot.items():
+        path = workdir / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)

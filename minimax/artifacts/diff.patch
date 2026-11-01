@@ -1,13 +1,25 @@
 diff --git a/src/taskboard/service.py b/src/taskboard/service.py
-index 7ca2591..261af1a 100644
 --- a/src/taskboard/service.py
 +++ b/src/taskboard/service.py
-@@ -23,6 +23,7 @@ def list_tasks(
+@@ -13,16 +13,18 @@ def list_tasks(
  
-     ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))
+     REQ-001: sort by (due_date, id) ascending.
+     REQ-002: sort first, then paginate with limit/offset.
+-    REQ-003: filter by status before sorting/pagination (not implemented yet).
++    REQ-003: filter by status before sorting/pagination.
+     REQ-004: validate limit/offset and raise ValueError on invalid input.
+     """
+     if limit <= 0:
+         raise ValueError("limit must be a positive integer")
+     if offset < 0:
+         raise ValueError("offset must be >= 0")
+ 
+-    ordered = sorted(tasks, key=lambda task: (task.due_date, task.id))
++    filtered = tasks
++    if status is not None:
++        filtered = (task for task in tasks if task.status == status)
  
 -    # TODO(REQ-003): apply the status filter here, before pagination.
-+    if status is not None:
-+        ordered = [task for task in ordered if task.status == status]
++    ordered = sorted(filtered, key=lambda task: (task.due_date, task.id))
  
      return ordered[offset : offset + limit]
