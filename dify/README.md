@@ -25,9 +25,9 @@
 
 | 组件 | 在作品中的实际作用 | 证据 |
 | --- | --- | --- |
-| **Dify 1.18.0 Chatflow** | 应用入口（玩家 ID + 对话）、HTTP 调用 `/recall`、LLM 扮演老巴、HTTP 调用 `/remember`、Answer 输出台词与账本 | `dsl/tavern-memory.chatflow.yml` |
-| **seekdb 1.4.0（embedded）** | 存放 24 张 lore 素材卡、`players` 账本（欠账/仇怨/来店次数/当前 scope）、`turns` 回合日志；每次 `/recall` 都从 lore 表和账本取数 | `evidence/logs/db_queries.log`（所有 SQL 均标记 `backend=seekdb`） |
-| **PowerContext 1.4.1** | 每个玩家一个 scope，`/remember` 用 `POST /v1/memory/remember` 写入本回合叙事，`/recall` 用 `POST /v1/memory/search` 取回旧回合；重启后通过 seekdb 中保存的 `scope_id` 继续使用同一份记忆 | `evidence/logs/powercontext.log`、`evidence/session2.json` |
+| **Dify Chatflow** | 应用入口（玩家 ID + 对话）、HTTP 调用 `/recall`、LLM 扮演老巴、HTTP 调用 `/remember`、Answer 输出台词与账本；本次证据是 **Dify Cloud 上已发布应用的真实运行** | `dsl/tavern-memory.chatflow.yml`、`evidence/dify/cloud/*.trace.json`（5 个节点的 Dify 事件） |
+| **seekdb 1.4.0（embedded）** | 存放 24 张 lore 素材卡、`players` 账本（欠账/仇怨/来店次数/当前 scope）、`turns` 回合日志；每次 `/recall` 都从 lore 表和账本取数 | `evidence/logs/db_queries.log`（所有 SQL 均标记 `backend=seekdb`）、`evidence/dify/cloud/night*.json` |
+| **PowerContext 1.4.1** | 每个玩家一个 scope，`/remember` 用 `POST /v1/memory/remember` 写入本回合叙事，`/recall` 用 `POST /v1/memory/search` 取回旧回合；重启后通过 seekdb 中保存的 `scope_id` 继续使用同一份记忆 | `evidence/logs/powercontext.log`、`evidence/dify/cloud/state-before-night2.json` |
 
 Dify 是编排者；seekdb 是“账本 + 设定库”；PowerContext 是“跨会话的记忆”。三者缺一，第二晚就不会知道第一晚发生了什么。
 
@@ -35,8 +35,8 @@ Dify 是编排者；seekdb 是“账本 + 设定库”；PowerContext 是“跨�
 
 | 项目 | 版本 / 说明 |
 | --- | --- |
-| Dify | **1.18.0**（官方 docker compose 部署；DSL `version: 0.3.1`） |
-| 模型 | DSL 中占位为 `langgenius/openai/openai` 的 `gpt-4o-mini`；可换成任意已配置的 Chat 模型（见 4.4） |
+| Dify | 提交证据来自 **Dify Cloud 已发布应用**（DSL `version: 0.3.1`）；也可导入自建 Dify 1.18.0 |
+| 模型 | 应用内绑定的 Chat 模型（OpenAI 兼容节点）；DSL 中占位为 `langgenius/openai/openai` 的 `gpt-4o-mini`，可换成任意已配置的 Chat 模型（见 4.5） |
 | Python | 3.12（后端与 PowerContext 均在 3.12.3 验证） |
 | seekdb | `pylibseekdb==1.4.0`（随 `requirements.txt` 安装；仅 Linux x86_64 wheel） |
 | PowerContext | `powercontext[server]==1.4.1`，本机 HTTP 模式（默认 `127.0.0.1:8000`，无鉴权） |
@@ -114,20 +114,47 @@ docker compose up -d
 > `docker compose exec api curl -s http://host.docker.internal:8770/health`
 > 先确认网络，再改 `TAVERN_API`。
 
-### 4.4 重新绑定模型（可选）
+### 4.4 使用 Dify Cloud（本次提交证据的运行方式）
+
+如果不想本地部署 Dify，可以直接在 Dify Cloud 建应用，并让云端访问本机后端：
+
+```bash
+# 把本机 8770 暴露为公网 HTTPS（一次性地址，进程退出即失效）
+cloudflared tunnel --url http://127.0.0.1:8770
+```
+
+1. 在 Dify Cloud 导入 `dsl/tavern-memory.chatflow.yml`（仓库里的
+   `evidence/dify/tavern-memory.cloud.yml` 是本次运行用的副本）；
+2. 把环境变量 `TAVERN_API` 改成 tunnel 给出的 `https://….trycloudflare.com`；
+3. 给 LLM 节点绑定云端已配置的模型，**发布**应用；
+4. 从运行页分享链接拿到 app code（`https://udify.app/chat/<code>`），供验证脚本使用。
+
+> tunnel 地址是临时的；重新运行时换成新的地址并重新发布即可。后端本身不需要公网 IP，
+> 但 tunnel 期间 8770 可被公网访问，验证完请关掉 cloudflared。
+
+### 4.5 重新绑定模型（可选）
 
 DSL 里的模型只是占位。导入后把 LLM 节点的 `provider/name` 换成本地已配置的任意 Chat 模型即可；提示词中使用的是 `{{#recall_node.body#}}`、`{{#sys.query#}}`，与模型无关。温度建议保持 0.8~0.9。
 
-## 5. 验证样例
+## 5. 验证：两晚真实 Dify 运行
 
-完整的两段会话脚本、预期表现和证据索引见 [`docs/verification.md`](docs/verification.md)。最省事的复现方式：
+完整的两段会话、节点轨迹、预期表现和证据索引见 [`docs/verification.md`](docs/verification.md)。最省事的复现方式（需要已发布的 Dify 应用和它的 app code）：
 
 ```bash
 cd dify
-PY=python3 TAVERN_DB_BACKEND=seekdb ./scripts/verify_two_sessions.sh
+DIFY_APP_CODE=<https://udify.app/chat/ 后面的 code> \
+TAVERN_DB_BACKEND=seekdb PY=python3 ./scripts/verify_dify_cloud.sh
 ```
 
-脚本会：启动后端 → 跑第一晚（赊账 + 撒谎）→ **停止后端** → 重新启动 → 跑第二晚（旧账被翻出 + 还账道歉）→ 断言 seekdb 账本和 PowerContext 记忆。成功时以 `[ok]` 结尾，并在 `evidence/` 下生成 JSON 与日志。
+脚本会：
+
+1. 通过 Dify Web App API 取得 passport，发起流式对话，逐行保存 Dify 的 SSE；
+2. 第一晚两轮（赊账、撒谎），采集 `workflow_started` / `node_started` / `node_finished` / `workflow_finished`；
+3. **停止后端并重新启动**（`/health` 的 `pid` 随之变化）；
+4. 新建 Dify 会话跑第二晚两轮（翻旧账、还账道歉），断言旧账与旧记忆被召回；
+5. 每次运行都断言 5 个节点全部 `succeeded`、账本行数字、后端 `app.log` 的 recall/remember 与 seekdb/PowerContext 日志。
+
+提交的运行（2026-11-02）4 次对话全部 5/5 节点成功；第二晚第一轮 `/recall` 命中 2 条旧记忆，后端 `pid` 37705 → 37869，账本从 `欠账 8 / 仇怨 1` 归零。原始 SSE 与节点 trace 在 `evidence/dify/cloud/`。
 
 Dify 界面中的第二晚，账本行应为：
 
@@ -136,6 +163,10 @@ Dify 界面中的第二晚，账本行应为：
 ```
 
 老巴的台词由 LLM 生成，不要求逐字一致，但必须满足：**说出欠 8 币**、**提到上次改口/撒谎**、**至少引用一条旧记忆**。还账后账本必须变成 `欠账 0 币 · 仇怨 0 格`。
+
+> `scripts/verify_two_sessions.sh` + `backend/selftest.py` 是**后端冒烟测试**：用固定 `mock_reply()` 直接调用
+> `/recall`、`/remember`，只检查 seekdb/PowerContext 连通性。它不经过 Dify，不作为本赛题“Dify 应用实际执行”的证据；
+> 其输出存放在 `evidence/backend-smoke/`。
 
 ## 6. 证据与目录
 
@@ -147,21 +178,26 @@ dify/
 │   ├── db.py                        # seekdb 存储层（SQL 全量日志）
 │   ├── memory.py                    # PowerContext HTTP 客户端
 │   ├── tavern.py                    # 赊账/撒谎/偷窃/还账规则
-│   ├── selftest.py                  # 两段会话验证（无需 LLM Key）
+│   ├── selftest.py                  # 后端冒烟测试（不经 Dify，无 LLM Key）
 │   └── lore.json                    # 24 张素材卡（原创）
 ├── scripts/
 │   ├── start_backend.sh
-│   └── verify_two_sessions.sh
+│   ├── verify_dify_cloud.py         # 驱动已发布 Dify 应用，保存 SSE/节点 trace/断言
+│   ├── verify_dify_cloud.sh         # 两晚 + 后端重启的编排
+│   └── verify_two_sessions.sh       # 后端冒烟测试（非 Dify 证据）
 ├── docs/
-│   ├── verification.md              # 验证样例、预期、重置
+│   ├── verification.md              # 两晚 Dify 运行、预期、证据索引
 │   └── TECH.md                      # 一页技术说明
 └── evidence/
-    ├── session1.json / session2.json
-    ├── session1.log / session2.log
-    └── logs/                        # db_queries.log / powercontext.log / app.log / server-*.log
+    ├── dify/cloud/                  # 4 次 Dify 运行的原始 SSE、节点 trace、断言、health
+    ├── logs/                        # 本次 Dify 运行的后端日志（seekdb / PowerContext）
+    └── backend-smoke/               # 后端接口级冒烟测试（不经过 Dify）
 ```
 
-`evidence/session1.json` 与 `session2.json` 保存了每一步 `/recall` 的完整返回（含 `lore`、`memories`、`ledger_tail`）、模拟台词、账本行以及最终的 `/state`。`evidence/logs/db_queries.log` 中每一行都是 seekdb 上真实执行的 SQL（`backend=seekdb`）；`powercontext.log` 记录了 scope 创建/复用、remember 与 search 的命中数。
+`evidence/dify/cloud/*.sse.txt` 是 Dify 直接返回的原始事件流；`*.trace.json` 保存了节点表、`workflow_run_id`、
+Answer、后端日志增量与 `/state`。`evidence/logs/db_queries.log` 中每一行都是 seekdb 上真实执行的 SQL
+（`backend=seekdb`）；`powercontext.log` 记录了 scope 创建/复用、remember 与 search 的命中数（0→4）。
+`evidence/dify/tavern-memory.cloud.yml` 是导入 Dify Cloud 时用的 DSL 副本（`TAVERN_API` 为一次性 tunnel 地址）。
 
 ## 7. 重置与重复验证
 
@@ -172,7 +208,7 @@ dify/
   ```
   账本与回合清零；epoch +1，PowerContext 换一个带随机后缀的新 scope，旧记忆不再参与。
 - **完全重置**：停止后端，删除 `data/`（seekdb 数据目录）后重启；素材卡会自动重新导入。
-- `verify_two_sessions.sh` 每次都会先调用 `/reset`，可直接重复执行；重复执行不会污染旧 scope。
+- `verify_dify_cloud.py night1` 每次都会先调用 `/reset`，可直接重复执行；重复执行不会污染旧 scope。`night2` 不重置，以保留第一晚状态供跨进程召回。
 
 ## 8. 已知限制
 
@@ -180,6 +216,11 @@ dify/
 - 单进程后端（seekdb 句柄与内存锁不跨进程）；不要用多个 uvicorn worker。
 - PowerContext 默认无鉴权且记忆检索为文本模式；本作品记忆链很短，未引入 Embedding/Rerank。若长期运行，建议启用鉴权并清理旧 epoch。
 - 老巴台词由 LLM 生成，存在措辞波动；账本数字与规则完全由后端决定，可用账本行核对。若模型不肯提旧账，可将温度降到 0.7 或换更强的模型。
+- Dify Web App 的流式事件默认隐藏节点的 inputs/outputs（控制台 API 才可读）。本仓库的证据因此由
+  Dify 的 `node_id`/状态/耗时、`workflow_finished.outputs.answer`，以及后端在同一秒内新增的
+  recall/remember 日志交叉证明；原始 SSE 一并提交，未做改写。
+- 使用 Dify Cloud 时，`TAVERN_API` 需要公网可达（cloudflared 等 tunnel）。tunnel 地址是一次性的，
+  验证后应关闭；后端与 PowerContext 均按本地可信环境设计，请勿长期直接暴露到公网。
 - 后端与 PowerContext 均按本地可信环境设计，未做公网鉴权；请勿直接暴露到公网。
 
 ## 9. 来源与声明

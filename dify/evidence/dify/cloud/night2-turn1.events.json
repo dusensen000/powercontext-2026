@@ -1,0 +1,443 @@
+[
+  {
+    "event": "workflow_started",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+      "workflow_id": "63934aef-cbbf-46bd-b239-3b59ee2e6971",
+      "inputs": {
+        "player_id": "demo_alice",
+        "sys.query": "老巴，我又来了，今天有什么好酒？",
+        "sys.files": [],
+        "sys.user_id": "tavern-verify-0a836fbba448",
+        "sys.dialogue_count": 1,
+        "sys.app_id": "b744b937-ddfe-4cf1-97b3-14cb85b41b4a",
+        "sys.workflow_id": "63934aef-cbbf-46bd-b239-3b59ee2e6971",
+        "sys.workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8"
+      },
+      "created_at": 1793590885,
+      "reason": "initial"
+    }
+  },
+  {
+    "event": "node_started",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "1f42ca78-546a-4159-b7ab-471a391e22b2",
+      "node_id": "start_node",
+      "node_type": "start",
+      "title": "Start",
+      "index": 1,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "created_at": 1793590885,
+      "extras": {},
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "node_finished",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "1f42ca78-546a-4159-b7ab-471a391e22b2",
+      "node_id": "start_node",
+      "node_type": "start",
+      "title": "Start",
+      "index": 1,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "process_data": null,
+      "outputs": null,
+      "status": "succeeded",
+      "error": null,
+      "elapsed_time": 9.6e-05,
+      "execution_metadata": null,
+      "created_at": 1793590885,
+      "finished_at": 1793590885,
+      "files": [],
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "node_started",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "bb3dcf37-11e9-4d37-bb14-e26abbb29c46",
+      "node_id": "recall_node",
+      "node_type": "http-request",
+      "title": "回忆旧账（seekdb + PowerContext）",
+      "index": 2,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "created_at": 1793590885,
+      "extras": {},
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "node_finished",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "bb3dcf37-11e9-4d37-bb14-e26abbb29c46",
+      "node_id": "recall_node",
+      "node_type": "http-request",
+      "title": "回忆旧账（seekdb + PowerContext）",
+      "index": 2,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "process_data": null,
+      "outputs": null,
+      "status": "succeeded",
+      "error": null,
+      "elapsed_time": 0.390004,
+      "execution_metadata": null,
+      "created_at": 1793590885,
+      "finished_at": 1793590886,
+      "files": [],
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "node_started",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "2a10d26a-5f4a-42a0-86b4-4f060be55714",
+      "node_id": "llm_node",
+      "node_type": "llm",
+      "title": "老巴（记忆驱动）",
+      "index": 3,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "created_at": 1793590886,
+      "extras": {},
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "老巴抬眼：“又来了？你还欠八枚币。上回说",
+    "from_variable_selector": [
+      "llm_node",
+      "text"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "‘明天还’，隔天就改成‘下周还’，我还记",
+    "from_variable_selector": [
+      "llm_node",
+      "text"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "着你一格仇呢。好酒是月光艾尔，五枚币一杯",
+    "from_variable_selector": [
+      "llm_node",
+      "text"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "，银色泡沫，喝了会想起初恋。旧账",
+    "from_variable_selector": [
+      "llm_node",
+      "text"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "先清，还是拿故事抵利息？”",
+    "from_variable_selector": [
+      "llm_node",
+      "text"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "",
+    "from_variable_selector": [
+      "llm_node",
+      "text"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "",
+    "from_variable_selector": [
+      "llm_node",
+      "text"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "\n\n",
+    "from_variable_selector": [
+      "answer_node",
+      "answer"
+    ]
+  },
+  {
+    "event": "node_finished",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "2a10d26a-5f4a-42a0-86b4-4f060be55714",
+      "node_id": "llm_node",
+      "node_type": "llm",
+      "title": "老巴（记忆驱动）",
+      "index": 3,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "process_data": null,
+      "outputs": null,
+      "status": "succeeded",
+      "error": null,
+      "elapsed_time": 5.48442,
+      "execution_metadata": null,
+      "created_at": 1793590886,
+      "finished_at": 1793590891,
+      "files": [],
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "node_started",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "de02788e-eefc-46bd-8fed-91b6c9414f1e",
+      "node_id": "remember_node",
+      "node_type": "http-request",
+      "title": "记账与存忆（seekdb + PowerContext）",
+      "index": 4,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "created_at": 1793590891,
+      "extras": {},
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "—— 老巴的账本：第3次照面 · 欠账 8 币 · 仇怨 1 格 · 本回合：闲聊 · 记忆已写入 PowerContext（scp_20a135tw…）",
+    "from_variable_selector": [
+      "remember_node",
+      "body"
+    ]
+  },
+  {
+    "event": "message",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "answer": "\n",
+    "from_variable_selector": [
+      "answer_node",
+      "answer"
+    ]
+  },
+  {
+    "event": "node_finished",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "de02788e-eefc-46bd-8fed-91b6c9414f1e",
+      "node_id": "remember_node",
+      "node_type": "http-request",
+      "title": "记账与存忆（seekdb + PowerContext）",
+      "index": 4,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "process_data": null,
+      "outputs": null,
+      "status": "succeeded",
+      "error": null,
+      "elapsed_time": 0.508385,
+      "execution_metadata": null,
+      "created_at": 1793590891,
+      "finished_at": 1793590892,
+      "files": [],
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "node_started",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "694f0999-5b15-4a20-a2ae-76599303f97d",
+      "node_id": "answer_node",
+      "node_type": "answer",
+      "title": "Answer",
+      "index": 5,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "created_at": 1793590892,
+      "extras": {},
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "node_finished",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "694f0999-5b15-4a20-a2ae-76599303f97d",
+      "node_id": "answer_node",
+      "node_type": "answer",
+      "title": "Answer",
+      "index": 5,
+      "predecessor_node_id": null,
+      "inputs": null,
+      "process_data": null,
+      "outputs": null,
+      "status": "succeeded",
+      "error": null,
+      "elapsed_time": 0.000107,
+      "execution_metadata": null,
+      "created_at": 1793590892,
+      "finished_at": 1793590892,
+      "files": [],
+      "iteration_id": null,
+      "loop_id": null
+    }
+  },
+  {
+    "event": "message_end",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "metadata": {
+      "retriever_resources": [],
+      "reasoning": {}
+    },
+    "files": []
+  },
+  {
+    "event": "workflow_finished",
+    "conversation_id": "fae80759-1b5f-4b0a-81c5-9b920f4376c2",
+    "message_id": "0501abb7-7099-4bb8-bf4e-9b3e5198258a",
+    "created_at": 1793590886,
+    "task_id": "58827c78-4482-450f-8610-da70b2bf956f",
+    "workflow_run_id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+    "data": {
+      "id": "8be9be2f-96f5-4a01-b6b9-443223ba3bb8",
+      "workflow_id": "63934aef-cbbf-46bd-b239-3b59ee2e6971",
+      "status": "succeeded",
+      "outputs": {
+        "answer": "老巴抬眼：“又来了？你还欠八枚币。上回说‘明天还’，隔天就改成‘下周还’，我还记着你一格仇呢。好酒是月光艾尔，五枚币一杯，银色泡沫，喝了会想起初恋。旧账先清，还是拿故事抵利息？”\n\n—— 老巴的账本：第3次照面 · 欠账 8 币 · 仇怨 1 格 · 本回合：闲聊 · 记忆已写入 PowerContext（scp_20a135tw…）\n",
+        "files": []
+      },
+      "error": null,
+      "elapsed_time": 6.475474584964104,
+      "total_tokens": 3435,
+      "total_steps": 5,
+      "created_by": {
+        "id": "50727e62-80e4-48a6-9e04-cc05768b7120",
+        "user": "tavern-verify-0a836fbba448"
+      },
+      "created_at": 1793590885,
+      "finished_at": 1793590892,
+      "exceptions_count": 0,
+      "files": []
+    }
+  }
+]

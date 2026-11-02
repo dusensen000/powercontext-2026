@@ -1,0 +1,13 @@
+2026-10-31T12:23:07	start	backend=seekdb db=tavern seeded=24 powercontext=http://127.0.0.1:8000 alive=True
+2026-10-31T12:23:08	reset	player=demo_alice new_epoch=0
+2026-10-31T12:23:08	recall	player=demo_alice visits=0 debt=0 grudge=0 lore=3 memories=0
+2026-10-31T12:23:08	remember	player=demo_alice intent=credit delta_debt=8 delta_grudge=0 debt=8 grudge=0 memory=ok
+2026-10-31T12:23:08	recall	player=demo_alice visits=1 debt=8 grudge=0 lore=2 memories=1
+2026-10-31T12:23:08	remember	player=demo_alice intent=lie delta_debt=0 delta_grudge=1 debt=8 grudge=1 memory=ok
+2026-10-31T12:23:08	stop	server shutting down
+2026-10-31T12:23:11	start	backend=seekdb db=tavern seeded=0 powercontext=http://127.0.0.1:8000 alive=True
+2026-10-31T12:23:11	recall	player=demo_alice visits=2 debt=8 grudge=1 lore=3 memories=2
+2026-10-31T12:23:11	remember	player=demo_alice intent=chat delta_debt=0 delta_grudge=0 debt=8 grudge=1 memory=ok
+2026-10-31T12:23:11	recall	player=demo_alice visits=3 debt=8 grudge=1 lore=2 memories=3
+2026-10-31T12:23:11	remember	player=demo_alice intent=repay_apology delta_debt=-8 delta_grudge=-1 debt=0 grudge=0 memory=ok
+2026-10-31T12:23:12	stop	server shutting down

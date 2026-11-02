@@ -4,6 +4,7 @@ PyMySQL>=1.1
 fastapi>=0.115
 uvicorn>=0.30
 python-multipart>=0.0.9
+requests>=2.31
 
 # Memory service used by /recall and /remember (run as a local HTTP server)
 powercontext[server]==1.4.1

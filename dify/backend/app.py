@@ -8,6 +8,7 @@ episodic memories that survive across Dify conversations.
 from __future__ import annotations
 
 import datetime as _dt
+import os
 import re
 import uuid
 from contextlib import asynccontextmanager
@@ -24,6 +25,7 @@ from memory import MemoryError_, PowerContextClient
 
 _db: Optional[TavernDB] = None
 _memory: Optional[PowerContextClient] = None
+_STARTED_AT = _dt.datetime.now().isoformat(timespec="seconds")
 
 
 def _now() -> str:
@@ -105,6 +107,8 @@ def _ensure_scope(player: Dict[str, Any]) -> str:
 def health() -> Dict[str, Any]:
     return {
         "ok": True,
+        "pid": os.getpid(),
+        "started_at": _STARTED_AT,
         "db_backend": db().backend,
         "db_name": db().db_name,
         "lore": db().count_lore(),

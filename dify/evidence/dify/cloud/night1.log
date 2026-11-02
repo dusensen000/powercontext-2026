@@ -1,0 +1,63 @@
+[night1] Dify app rb4J4mx8dCdy4isV @ https://udify.app/api
+[night1] player=demo_alice backend=http://127.0.0.1:8770
+  [ok] night1: backend /health ok
+  [ok] night1: backend ledger is seekdb (got seekdb)
+  [ok] night1: PowerContext reachable
+[night1] reset: 账本翻篇：seekdb 中该玩家的状态与回合已清零，PowerContext 改用新一代 scope，旧记忆不再参与。
+[night1] turn 1: 老巴，来杯火焰威士忌，先记我账上，明天还你。
+  [ok] credit: Dify SSE has no error event
+  [ok] credit: workflow_finished status=succeeded (got succeeded)
+  [ok] credit: workflow ran 5 steps (got 5)
+  [ok] credit: node_finished covers Start→recall→LLM→remember→Answer in order
+  [ok] credit: 5 node_started events (got 5)
+  [ok] credit: every node_finished status=succeeded
+  [ok] credit: one workflow_run_id shared by all node events
+  [ok] credit: one conversation_id for the streaming run
+  [ok] credit: recall_node really made an HTTP call (0.736596s)
+  [ok] credit: remember_node really made an HTTP call (0.534172s)
+  [ok] credit: Answer contains the backend ledger line
+  [ok] credit: ledger line = 第1次照面/欠账 8/仇怨 0 (got 第1次/欠账 8/仇怨 0)
+  [ok] credit: ledger label contains 赊账 (got '赊账（赊下火焰威士忌（8 币））')
+  [ok] credit: Answer reports the PowerContext write
+  [ok] credit: backend /state visits/debt/grudge = 1/8/0
+  [ok] credit: backend app.log shows the recall HTTP node arrival
+  [ok] credit: backend app.log shows the remember HTTP node arrival
+  [ok] credit: backend settlement intent=credit delta_debt=8 delta_grudge=0
+  answer: 老巴把杯垫和笔拍在柜台上：“火焰威士忌，价八。签杯垫，赊账；每天讲一个离谱故事抵利息。不好笑就翻倍。叫什么？签完上酒——眉毛自己带走。”
+
+—— 老巴的账本：第1次照面 · 欠账 8 币 · 仇怨 0 格 · 本回合：赊账（赊下火焰威士忌（8 币）） · 记忆已写入 PowerContext（scp_20a135tw…）
+  node 1. start_node (start) succeeded 0.000107s
+  node 2. recall_node (http-request) succeeded 0.736596s
+  node 3. llm_node (llm) succeeded 8.627244s
+  node 4. remember_node (http-request) succeeded 0.534172s
+  node 5. answer_node (answer) succeeded 9.5e-05s
+[night1] turn 2: 我昨天说的是下周还，你可别记错了。
+  [ok] lie: Dify SSE has no error event
+  [ok] lie: workflow_finished status=succeeded (got succeeded)
+  [ok] lie: workflow ran 5 steps (got 5)
+  [ok] lie: node_finished covers Start→recall→LLM→remember→Answer in order
+  [ok] lie: 5 node_started events (got 5)
+  [ok] lie: every node_finished status=succeeded
+  [ok] lie: one workflow_run_id shared by all node events
+  [ok] lie: one conversation_id for the streaming run
+  [ok] lie: recall_node really made an HTTP call (0.450785s)
+  [ok] lie: remember_node really made an HTTP call (1.283696s)
+  [ok] lie: Answer contains the backend ledger line
+  [ok] lie: ledger line = 第2次照面/欠账 8/仇怨 1 (got 第2次/欠账 8/仇怨 1)
+  [ok] lie: ledger label contains 撒谎 (got '撒谎（被假眼识破，记仇一格）')
+  [ok] lie: Answer reports the PowerContext write
+  [ok] lie: backend /state visits/debt/grudge = 2/8/1
+  [ok] lie: backend app.log shows the recall HTTP node arrival
+  [ok] lie: backend app.log shows the remember HTTP node arrival
+  [ok] lie: backend settlement intent=lie delta_debt=0 delta_grudge=1
+  answer: 老巴敲敲账本：“八枚币，一枚没少。你上回说的是‘明天还你’，可不是‘下周还’。我这左眼是假的，右眼毒得很——想改口，先讲个离谱故事抵利息。”
+
+—— 老巴的账本：第2次照面 · 欠账 8 币 · 仇怨 1 格 · 本回合：撒谎（被假眼识破，记仇一格） · 记忆已写入 PowerContext（scp_20a135tw…）
+  node 1. start_node (start) succeeded 8.7e-05s
+  node 2. recall_node (http-request) succeeded 0.450785s
+  node 3. llm_node (llm) succeeded 6.165945s
+  node 4. remember_node (http-request) succeeded 1.283696s
+  node 5. answer_node (answer) succeeded 9.6e-05s
+  [ok] night1: PowerContext holds >=2 turn memories (got 2)
+  [ok] night1: seekdb turns table has 2 rows for this epoch
+[night1] PASS -> /mnt/d/powercontext-2026/dify/evidence/dify/cloud/night1.json

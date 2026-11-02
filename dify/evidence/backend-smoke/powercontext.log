@@ -1,0 +1,35 @@
+2026-10-31T12:23:07	http	POST /v1/capabilities status=200 elapsed_ms=31 bytes=4249
+2026-10-31T12:23:07	http	POST /v1/capabilities status=200 elapsed_ms=2 bytes=4249
+2026-10-31T12:23:08	http	POST /v1/scopes status=201 elapsed_ms=17 bytes=213
+2026-10-31T12:23:08	scope	create player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc title=tavern-demo_alice-e0-47b4b7
+2026-10-31T12:23:08	http	POST /v1/memory/search status=200 elapsed_ms=10 bytes=25
+2026-10-31T12:23:08	search	scope=scp_5bch0s5erkknmj78rspm3aaezc mode=text hits=0 query='老巴，来杯火焰威士忌，先记我账上，明天还你。 欠账 0 仇怨 0 上次 老巴'
+2026-10-31T12:23:08	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:08	http	POST /v1/memory/remember status=200 elapsed_ms=49 bytes=359
+2026-10-31T12:23:08	remember	scope=scp_5bch0s5erkknmj78rspm3aaezc chars=140 artifacts=['art_da0819e8ef98404e9eb1396e07ffe4e9'] preview='记忆酒馆·第1次照面｜玩家 demo_alice 说：“老巴，来杯火焰威士忌，先记我账上，明天还你。”｜老巴回：“火焰威士忌？行。杯垫上签个名——八币，明天这个时辰，我等你。”｜判定：赊账（赊下火焰威士忌（8 币））｜回合变化：欠账+8，仇'
+2026-10-31T12:23:08	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:08	http	POST /v1/memory/search status=200 elapsed_ms=16 bytes=416
+2026-10-31T12:23:08	search	scope=scp_5bch0s5erkknmj78rspm3aaezc mode=text hits=1 query='我昨天说的是下周还，你可别记错了。 欠账 8 仇怨 0 上次 老巴'
+2026-10-31T12:23:08	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:08	http	POST /v1/memory/remember status=200 elapsed_ms=32 bytes=370
+2026-10-31T12:23:08	remember	scope=scp_5bch0s5erkknmj78rspm3aaezc chars=151 artifacts=['art_ed75f7a471a1446c8ceec64329d769e5'] preview='记忆酒馆·第2次照面｜玩家 demo_alice 说：“我昨天说的是下周还，你可别记错了。”｜老巴回：“你昨天说的是‘明天还’，今天又改口下周？我左眼不眨，不代表它瞎。这 8 币我记下了，仇也记一格。”｜判定：撒谎（被假眼识破，记仇一格）｜'
+2026-10-31T12:23:08	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:08	http	POST /v1/memory/search status=200 elapsed_ms=16 bytes=820
+2026-10-31T12:23:08	search	scope=scp_5bch0s5erkknmj78rspm3aaezc mode=text hits=2 query='欠账 仇怨 老巴 上次'
+2026-10-31T12:23:11	http	POST /v1/capabilities status=200 elapsed_ms=24 bytes=4249
+2026-10-31T12:23:11	http	POST /v1/capabilities status=200 elapsed_ms=2 bytes=4249
+2026-10-31T12:23:11	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:11	http	POST /v1/memory/search status=200 elapsed_ms=19 bytes=820
+2026-10-31T12:23:11	search	scope=scp_5bch0s5erkknmj78rspm3aaezc mode=text hits=2 query='老巴，我又来了，今天有什么好酒？ 欠账 8 仇怨 1 上次 老巴'
+2026-10-31T12:23:11	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:11	http	POST /v1/memory/remember status=200 elapsed_ms=32 bytes=361
+2026-10-31T12:23:11	remember	scope=scp_5bch0s5erkknmj78rspm3aaezc chars=142 artifacts=['art_35f490de7dd54a9b99f4227d68478d34'] preview='记忆酒馆·第3次照面｜玩家 demo_alice 说：“老巴，我又来了，今天有什么好酒？”｜老巴回：“又来了？先别急着点酒。你欠我 8 币，你上回的原话我还留着呢。我左眼把你上次改口的样子记得清清楚楚。”｜判定：闲聊（）｜回合变化：欠账+0'
+2026-10-31T12:23:11	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:11	http	POST /v1/memory/search status=200 elapsed_ms=18 bytes=1215
+2026-10-31T12:23:11	search	scope=scp_5bch0s5erkknmj78rspm3aaezc mode=text hits=3 query='对不起，上次是我不对。我这就还你 8 币。 欠账 8 仇怨 1 上次 老巴'
+2026-10-31T12:23:11	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:11	http	POST /v1/memory/remember status=200 elapsed_ms=32 bytes=360
+2026-10-31T12:23:11	remember	scope=scp_5bch0s5erkknmj78rspm3aaezc chars=141 artifacts=['art_8c344359aa824f59a92795696a9825b5'] preview='记忆酒馆·第4次照面｜玩家 demo_alice 说：“对不起，上次是我不对。我这就还你 8 币。”｜老巴回：“……行，8 币放下。杯子还给你留着，别再让我用假眼盯你。”｜判定：还账并道歉（收下 8 币，并接受了道歉）｜回合变化：欠账-8，'
+2026-10-31T12:23:11	scope	reuse player=demo_alice epoch=0 scope_id=scp_5bch0s5erkknmj78rspm3aaezc
+2026-10-31T12:23:11	http	POST /v1/memory/search status=200 elapsed_ms=18 bytes=1597
+2026-10-31T12:23:11	search	scope=scp_5bch0s5erkknmj78rspm3aaezc mode=text hits=4 query='欠账 仇怨 老巴 上次'
