@@ -4,10 +4,10 @@
 
 2026 OceanBase 数据库大赛 · Qoder 赛道参赛项目。
 
-作品链接：https://relay-handoff-fg3f3bh5joq.qoder.website （静态展示站，源码就是 `site/`）
+作品链接：https://relay-handoff-fg3f3bh5joq.qoder.website （可操作的工作台，源码就是 `site/`）
 
 四条链路的原始输出在 `evidence/`：seekdb 三路对比、真实台账检索、端到端逐条判定与交接卡、
-PowerContext 建 Scope 与召回。README 和展示站里的每个数字都能在这些日志里找到对应行。
+PowerContext 建 Scope 与召回。工作台与文档里的每个数字都能在这些日志里找到对应行。
 抽取由 StepFun 完成，条目数会随运行小幅浮动（这份 evidence 那次是 23 抽 → 14 条台账），
 但合并/新增的判定逻辑与台账结构不变。
 
@@ -80,14 +80,23 @@ bash run.sh --ui        # http://localhost:8501
 
 四个页签：录入（抽取 + 逐条判重）、台账与对账、检索验证（三路并排）、交接（交接卡 + PowerContext 四步）。
 
-## 展示站
+## 工作台
 
-`site/` 是纯静态展示站（`index.html` + `styles.css` + `assets/` 四张真实运行截图），
-内容全部取自上面脚本的实测输出。本地预览：
+`site/` 是一个可直接操作的单页工作台，不是介绍页：概览 / 收件箱 / 台账 / 对账 / 检索 / 交接六个视图，
+台账、判重、对账、交接都在浏览器里跑，状态存在 `localStorage`。项目背景、技术选型、实测数据与复现说明
+全部放在 [docs/项目说明.md](docs/项目说明.md)。
 
 ```bash
+# 从 seekdb 导出种子数据（WSL 内执行）
+bash run.sh scripts/export_site_data.py
+
+# 本地预览
 cd site && python3 -m http.server 8777 --bind 127.0.0.1
+# 打开 http://127.0.0.1:8777/
 ```
+
+工作台没有构建步骤（纯 ES 模块）。`file://` 下 `fetch` 会失败，用任意静态服务器打开。
+工作台内的阈值 **0.55** 是针对「字符二元组 + TF-IDF」重新校准的，与后端 bge 的 0.28 不是同一把尺子。
 
 发布走 Qoder Sites（`prepare_site` 会生成 `.站点名称.qoder.site` 描述文件，不要手写）。
 
@@ -110,7 +119,8 @@ app.py          Streamlit 四页签界面
 data/samples/   三份样例纪要（启动会 / 周会 / 交接会）
 data/out/       交接卡、Scope ID、核对用的检索与召回输出
 evidence/       四条链路的真实运行日志（判题用）
-site/           静态展示站（作品介绍 + 技术验证 + 界面截图）
+site/           工作台（index.html + app.css + js/ + data/ + assets/）
+docs/           项目说明（背景、选型、实测数据、复现与边界）
 scripts/        验收与演示脚本
 requirements.txt 本地链路依赖（PowerContext 另建 venv，版本见上）
 run.sh          Windows 侧调用 WSL 的入口

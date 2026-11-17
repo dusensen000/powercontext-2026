@@ -1,0 +1,145 @@
+{
+  "project": "Aurora",
+  "items": [
+    {
+      "id": "8eff9048bfc74af19c49879b3addd669",
+      "kind": "action",
+      "title": "输出接口改造技术方案",
+      "detail": "负责登录接口改造技术方案输出，截止2026-09-08",
+      "owner": "张伟",
+      "due": "2026-09-08",
+      "status": "open",
+      "source": "meeting-01.md"
+    },
+    {
+      "id": "95092d5d72994978a38e42c65bf25c8d",
+      "kind": "risk",
+      "title": "新旧接口token不一致风险",
+      "detail": "新旧接口并存期间token格式不一致，可能导致用户登录态丢失",
+      "owner": "",
+      "due": "",
+      "status": "open",
+      "source": "meeting-01.md"
+    },
+    {
+      "id": "0798bda7bdc84873bc4b6afda25c2705",
+      "kind": "action",
+      "title": "交付登录页改版设计稿",
+      "detail": "登录页改版设计稿已交付，前端开发预计2026-09-22完成",
+      "owner": "李静",
+      "due": "2026-09-22",
+      "status": "in_progress",
+      "source": "meeting-01.md → meeting-02.md"
+    },
+    {
+      "id": "b1d72d3c676b4be999dcce65183f7943",
+      "kind": "action",
+      "title": "测试用例编写完成80%",
+      "detail": "测试用例编写完成80%，尚未开始执行",
+      "owner": "王强",
+      "due": "",
+      "status": "in_progress",
+      "source": "meeting-02.md"
+    },
+    {
+      "id": "ba8644831bb343ea8c33428cc003073f",
+      "kind": "decision",
+      "title": "灰度发布策略",
+      "detail": "灰度已放5%流量观察三天无明显异常，决定扩大到20%",
+      "owner": "",
+      "due": "",
+      "status": "in_progress",
+      "source": "meeting-01.md → meeting-02.md"
+    },
+    {
+      "id": "a064224dd1d84391b07afb001df194bc",
+      "kind": "question",
+      "title": "是否支持短信验证码登录",
+      "detail": "陈曦确认本期不做短信验证码登录，该功能排入下个版本",
+      "owner": "陈曦",
+      "due": "",
+      "status": "done",
+      "source": "meeting-01.md → meeting-02.md"
+    },
+    {
+      "id": "5b1e5c80f5bb4164804805a6c3de077d",
+      "kind": "decision",
+      "title": "旧接口不下线约束",
+      "detail": "因移动端3.2版本仍在使用旧auth接口，该接口暂不能下线",
+      "owner": "",
+      "due": "",
+      "status": "done",
+      "source": "meeting-01.md → meeting-03.md"
+    },
+    {
+      "id": "29d37afab22747f9a7c07042dc69cfc5",
+      "kind": "decision",
+      "title": "全量发布时间推迟至10月15日",
+      "detail": "原定2026-09-30全量发布，现推迟至2026-10-15",
+      "owner": "",
+      "due": "2026-10-15",
+      "status": "done",
+      "source": "meeting-03.md"
+    },
+    {
+      "id": "13d75f57836a413097f28b1198bcf034",
+      "kind": "action",
+      "title": "完成登录改造三项前置工作",
+      "detail": "已完成登录接口改造、前端登录页改版、测试用例编写",
+      "owner": "张伟",
+      "due": "",
+      "status": "done",
+      "source": "meeting-03.md"
+    },
+    {
+      "id": "a637da36b39041099307784c762b436b",
+      "kind": "risk",
+      "title": "数据库连接池存在被打满风险",
+      "detail": "原定2026-09-18完成，已超期，DBA暂未排期",
+      "owner": "张伟",
+      "due": "2026-09-18",
+      "status": "blocked",
+      "source": "meeting-02.md → meeting-03.md"
+    },
+    {
+      "id": "b1bb0e580bf3429494d90748b730fc57",
+      "kind": "question",
+      "title": "20%灰度回滚阈值待确认",
+      "detail": "当前20%灰度回滚阈值尚未确定，王强待输出建议",
+      "owner": "王强",
+      "due": "",
+      "status": "open",
+      "source": "meeting-02.md → meeting-03.md"
+    },
+    {
+      "id": "4183ee179f70412e9b5aecbe66704ecb",
+      "kind": "action",
+      "title": "完成登录改造全量回归测试",
+      "detail": "赵磊需在2026-10-08前完成登录改造全量回归测试",
+      "owner": "赵磊",
+      "due": "2026-10-08",
+      "status": "open",
+      "source": "meeting-03.md"
+    },
+    {
+      "id": "e979057b56f749df9e753e9fbbb4986f",
+      "kind": "risk",
+      "title": "登录接口性能问题",
+      "detail": "当前灰度20%场景下登录接口P95为520ms，距离400ms的目标仍有差距",
+      "owner": "张伟",
+      "due": "2026-09-30",
+      "status": "in_progress",
+      "source": "meeting-01.md → meeting-01.md → meeting-02.md → meeting-03.md"
+    },
+    {
+      "id": "9255588697be4d00b5c15cdd0f7bed59",
+      "kind": "risk",
+      "title": "灰度配置误操作风险",
+      "detail": "交接期间无人员熟悉灰度配置，存在误操作风险",
+      "owner": "",
+      "due": "",
+      "status": "open",
+      "source": "meeting-03.md"
+    }
+  ]
+}
