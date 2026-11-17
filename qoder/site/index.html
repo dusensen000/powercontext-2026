@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>接力棒 Relay · 交接工作台</title>
 <meta name="description" content="接力棒 Relay：会议纪要抽取、seekdb 混合检索去重、台账对账与交接的工作台。">
-<meta name="theme-color" content="#121821">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8502a'/%3E%3Ctext x='16' y='22.5' font-size='17' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3E%E6%8E%A5%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#16121c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d9542b'/%3E%3Ctext x='16' y='22.5' font-size='17' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3E%E6%8E%A5%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="app.css">
 <script type="module" src="js/main.js"></script>
 </head>
@@ -27,58 +27,79 @@
 
     <nav class="nav" id="nav">
       <p class="nav-label">工作区</p>
-      <button type="button" data-view="overview">
+      <button type="button" data-view="overview" title="概览：项目当前状态">
         <svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 8h6V4h-6z"/></svg>
         概览
       </button>
-      <button type="button" data-view="ingest">
+      <button type="button" data-view="ingest" title="收件箱：纪要抽取与判重">
         <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v3h16v-3"/></svg>
         收件箱
         <span class="nav-badge" id="badgeDraft" hidden>0</span>
       </button>
-      <button type="button" data-view="ledger">
+      <button type="button" data-view="ledger" title="台账：全部条目">
         <svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/></svg>
         台账
         <span class="nav-count" id="countLedger">14</span>
       </button>
-      <button type="button" data-view="reconcile">
+      <button type="button" data-view="reconcile" title="对账：超期与失联">
         <svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 4-7 5 4"/><path d="M3 21h18"/></svg>
         对账
         <span class="nav-badge warn" id="badgeOverdue" hidden>0</span>
       </button>
-      <button type="button" data-view="retrieval">
+      <button type="button" data-view="retrieval" title="检索：三路对比">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
         检索
       </button>
-      <button type="button" data-view="handoff">
+      <button type="button" data-view="handoff" title="交接：交接卡与四步">
         <svg viewBox="0 0 24 24"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/><path d="M5 6v12"/></svg>
         交接
         <span class="nav-count" id="countHandoff">0</span>
       </button>
     </nav>
 
+    <div class="rail-progress" id="railProgress">
+      <h4>上手进度 <b id="progressCount">0/4</b></h4>
+      <div class="rail-track"><i id="progressBar" style="width:0%"></i></div>
+      <p id="progressHint">下一步：去收件箱抽一次纪要</p>
+    </div>
+
     <div class="rail-foot">
       <div class="status"><span class="dot ok"></span><span>抽取</span><b id="statusExtract">本地规则 v1</b></div>
       <div class="status"><span class="dot ok"></span><span>语义</span><b id="statusVectors">TF-IDF</b></div>
       <div class="status"><span class="dot ok"></span><span>存储</span><b>浏览器本地</b></div>
-      <button type="button" class="rail-link" id="btnReset">重置为初始数据</button>
+      <button type="button" class="rail-link" id="btnTour">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M8 5.4 18.4 12 8 18.6z"/></svg>
+        重看分步引导
+      </button>
+      <button type="button" class="rail-link" id="btnReset">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.4 4v4.6h-4.6"/></svg>
+        重置为初始数据
+      </button>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
       <div class="topbar-title">
-        <h1 id="viewTitle">概览</h1>
-        <p id="viewSub">Aurora 登录改造 · 2026-09-29 对账</p>
+        <span class="topbar-ic" id="viewIcon"></span>
+        <span style="min-width:0">
+          <h1 id="viewTitle">概览</h1>
+          <p id="viewSub">Aurora 登录改造 · 2026-09-29 对账</p>
+        </span>
       </div>
       <div class="topbar-actions">
         <label class="date-field">
+          <svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3.2v3.4M16 3.2v3.4"/></svg>
           <span>对账基准日</span>
           <input type="date" id="asOf">
         </label>
-        <button type="button" class="btn ghost" id="btnSettings">
+        <button type="button" class="btn ghost" id="btnHelp" aria-label="使用指引">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .9-1 1.7v.4"/><circle cx="12" cy="17" r=".8"/></svg>
+          <span>使用指引</span>
+        </button>
+        <button type="button" class="btn ghost" id="btnSettings" aria-label="设置">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1M19.1 4.9 17 7m-10 10-2.1 2.1"/></svg>
-          设置
+          <span>设置</span>
         </button>
       </div>
     </header>

@@ -30,12 +30,60 @@ export const fmtStmt = (iso) => {
   return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 };
 
-export function toast(text) {
+export function toast(text, action = null) {
   const wrap = $("#toast");
-  wrap.innerHTML = `<div class="toast">${esc(text)}</div>`;
+  wrap.innerHTML = `
+    <div class="toast">
+      <span class="toast-dot"></span>
+      <span>${esc(text)}</span>
+      ${action ? `<button type="button" class="toast-act">${esc(action.label)}</button>` : ""}
+    </div>`;
   wrap.hidden = false;
+  if (action) {
+    $(".toast-act", wrap).addEventListener("click", () => {
+      wrap.hidden = true;
+      clearTimeout(toast._timer);
+      action.onClick();
+    });
+  }
   clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => { wrap.hidden = true; }, 2600);
+  toast._timer = setTimeout(() => { wrap.hidden = true; }, action ? 6500 : 2600);
+}
+
+/** 站内确认框，替代浏览器原生 confirm。 */
+export function confirmDialog(title, text, okLabel = "确认", danger = true) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener("keydown", onKey);
+      closeModal();
+      resolve(value);
+    };
+    const onKey = (event) => { if (event.key === "Escape") finish(false); };
+    document.addEventListener("keydown", onKey);
+    openModal(
+      title,
+      `<p class="confirm-text">${esc(text)}</p>
+       <div class="confirm-actions">
+         <button class="btn" type="button" data-no>取消</button>
+         <button class="btn ${danger ? "danger solid" : "primary"}" type="button" data-yes>${esc(okLabel)}</button>
+       </div>`,
+      "",
+      (modal) => {
+        $("[data-no]", modal).addEventListener("click", () => finish(false));
+        $("[data-yes]", modal).addEventListener("click", () => finish(true));
+        $("[data-close-modal]", modal).addEventListener("click", () => finish(false));
+        setTimeout(() => $("[data-yes]", modal)?.focus(), 30);
+      },
+    );
+    const wrap = $("#modal");
+    const onBackdrop = (event) => {
+      if (event.target === wrap) { finish(false); wrap.removeEventListener("click", onBackdrop); }
+    };
+    wrap.addEventListener("click", onBackdrop);
+  });
 }
 
 export function closeDrawer() {

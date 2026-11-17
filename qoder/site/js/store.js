@@ -25,6 +25,8 @@ export const store = {
     const saved = this.read();
     this.state = saved || this.fresh();
     this.state.items = this.state.items.map((item) => ({ ...item }));
+    this.state.views = Array.isArray(this.state.views) ? this.state.views : [];
+    this.state.milestones = { extract: false, write: false, reconcile: false, handoff: false, ...(this.state.milestones || {}) };
     this.rebuild();
     this.positions = Math.max(Number(this.state.positions) || 0, 4 * (this.state.handoffs?.length || 0));
     return this.state;
@@ -53,6 +55,8 @@ export const store = {
       positions: 0,
       items: clone(this.seed.items),
       handoffs: [],
+      views: [],
+      milestones: { extract: false, write: false, reconcile: false, handoff: false },
       activity: [
         { at: new Date().toISOString(), text: `载入初始台账 ${this.seed.items.length} 条` },
       ],
@@ -160,6 +164,7 @@ export const store = {
       }
     }
     this.log(`写入台账：新增 ${added} 条，合并 ${merged} 条`);
+    this.state.milestones.write = true;
     this.emit();
     return { added, merged };
   },
@@ -213,8 +218,10 @@ export const store = {
 
   removeItem(id) {
     const item = this.items.find((row) => row.id === id);
-    this.items = this.state.items = this.state.items.filter((row) => row.id !== id);
-    if (item) this.log(`删除「${item.title}」`);
+    if (!item) return;
+    this.snapshot(`删除「${item.title}」`);
+    this.state.items = this.state.items.filter((row) => row.id !== id);
+    this.log(`删除「${item.title}」`);
     this.emit();
   },
 
@@ -226,13 +233,96 @@ export const store = {
 
   addHandoff(record) {
     this.state.handoffs.unshift(record);
+    this.state.milestones.handoff = true;
     this.log(`生成交接 ${record.from} → ${record.to}（${record.steps.length} 步）`);
+    this.emit();
+  },
+
+  mark(key) {
+    if (!this.state.milestones || this.state.milestones[key]) return;
+    this.state.milestones[key] = true;
+    this.save();
+  },
+
+  /* ---------- 批量操作与撤销 ---------- */
+
+  snapshot(label) {
+    this._undo = {
+      label,
+      items: clone(this.state.items),
+      handoffs: clone(this.state.handoffs),
+    };
+  },
+
+  get undoLabel() { return this._undo?.label || ""; },
+
+  undo() {
+    if (!this._undo) return false;
+    this.state.items = this._undo.items;
+    this.state.handoffs = this._undo.handoffs;
+    this.log(`撤销：${this._undo.label}`);
+    this._undo = null;
+    this.emit();
+    return true;
+  },
+
+  bulkStatus(ids, status) {
+    const set = new Set(ids);
+    const touched = this.items.filter((item) => set.has(item.id) && item.status !== status);
+    if (!touched.length) return 0;
+    this.snapshot(`批量改状态 ${touched.length} 条`);
+    touched.forEach((item) => { item.status = status; });
+    this.log(`批量把 ${touched.length} 条改为「${status}」`);
+    this.emit();
+    return touched.length;
+  },
+
+  bulkRemove(ids) {
+    const set = new Set(ids);
+    const removed = this.items.filter((item) => set.has(item.id));
+    if (!removed.length) return 0;
+    this.snapshot(`删除 ${removed.length} 条`);
+    this.state.items = this.items.filter((item) => !set.has(item.id));
+    this.log(`批量删除 ${removed.length} 条`);
+    this.emit();
+    return removed.length;
+  },
+
+  /** 拖拽排序：把 dragId 挪到 targetId 前/后，直接改数组顺序。 */
+  reorder(dragId, targetId, after = false) {
+    if (dragId === targetId) return false;
+    const from = this.items.findIndex((item) => item.id === dragId);
+    const to = this.items.findIndex((item) => item.id === targetId);
+    if (from < 0 || to < 0) return false;
+    const [moved] = this.state.items.splice(from, 1);
+    const base = this.items.findIndex((item) => item.id === targetId);
+    this.state.items.splice(after ? base + 1 : base, 0, moved);
+    this.log(`调整顺序「${moved.title}」`);
+    this.emit();
+    return true;
+  },
+
+  /* ---------- 保存的筛选视图 ---------- */
+
+  saveView(name, filters) {
+    const view = { id: shortId("vw"), name, filters: { ...filters } };
+    this.state.views.push(view);
+    this.log(`保存视图「${name}」`);
+    this.emit();
+    return view;
+  },
+
+  removeView(id) {
+    const view = this.state.views.find((row) => row.id === id);
+    this.state.views = this.state.views.filter((row) => row.id !== id);
+    if (view) this.log(`删除视图「${view.name}」`);
     this.emit();
   },
 
   reset() {
     this.state = this.fresh();
     this.positions = 0;
+    this._undo = null;
     this.emit();
   },
 };
